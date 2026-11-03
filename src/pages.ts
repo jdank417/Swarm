@@ -36,6 +36,45 @@ export function nav(page: Page) {
   </header>`;
 }
 
+/**
+ * Phone and tablet navigation: a menu button fixed to the corner, so it's
+ * reachable from anywhere on the page, opening a full-screen list of pages.
+ * It's interface chrome, like the rulers, so it isn't built by the swarm.
+ */
+export function mobileMenu(page: Page) {
+  const items: [Page | "home", string, string][] = [["home", "Home", "./"], ...NAV];
+  const current = page === "project" ? "projects" : page;
+  return `
+  <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><i></i><i></i><i></i></button>
+  <nav class="mnav" id="mnav" aria-label="Site" hidden>
+    <ul>${items.map(([id, label, href]) => `<li><a href="${href}"${id === current ? ' aria-current="page"' : ""}>${label}</a></li>`).join("")}
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="mnav-links mono">
+      <a href="mailto:${EMAIL}">${EMAIL}</a>
+      <a href="${LINKEDIN_URL}" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="${GITHUB_URL}" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>`;
+}
+
+export function setupMobileMenu() {
+  const btn = document.querySelector<HTMLButtonElement>(".menu-btn");
+  const panel = document.getElementById("mnav");
+  if (!btn || !panel) return;
+  const set = (open: boolean) => {
+    btn.setAttribute("aria-expanded", String(open));
+    btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    document.documentElement.classList.toggle("menu-open", open);
+    if (open) { panel.hidden = false; requestAnimationFrame(() => panel.classList.add("open")); panel.querySelector("a")?.focus(); }
+    else { panel.classList.remove("open"); setTimeout(() => { if (!panel.classList.contains("open")) panel.hidden = true; }, 220); }
+  };
+  btn.addEventListener("click", () => set(btn.getAttribute("aria-expanded") !== "true"));
+  panel.addEventListener("click", (e) => { if ((e.target as HTMLElement).closest("a") || e.target === panel) set(false); });
+  addEventListener("keydown", (e) => { if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") { set(false); btn.focus(); } });
+  matchMedia("(min-width: 901px)").addEventListener("change", (m) => { if (m.matches) set(false); });
+}
+
 export function contact() {
   return section("contact", `
     <p class="eyebrow mono" data-part="text">Contact</p>
@@ -264,4 +303,6 @@ export function render(page: Page, host: HTMLElement) {
     : page === "sailing" ? sailingPage()
     : home();
   host.innerHTML = nav(page) + `<main id="top">${body}</main>`;
+  host.insertAdjacentHTML("afterend", mobileMenu(page));
+  setupMobileMenu();
 }
