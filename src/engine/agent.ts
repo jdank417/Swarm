@@ -55,8 +55,8 @@ export class Agent {
     this.tw?.resolve();
     const dx = tx - this.x, dy = ty - this.y;
     const d = Math.hypot(dx, dy);
-    const dur = o.dur ?? clamp(d * 0.75 + 140, 140, 1000);
-    const curve = o.curve ?? rand(-0.2, 0.2);
+    const dur = o.dur ?? clamp(d * 1.3 + 400, 450, 1700);
+    const curve = o.curve ?? rand(-0.12, 0.12);
     // Bend the path, and lean the start along current velocity so leaving the flock is smooth.
     let cx = (this.x + tx) / 2 - dy * curve;
     let cy = (this.y + ty) / 2 + dx * curve;

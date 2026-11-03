@@ -14,7 +14,7 @@ export type Kind = "frame" | "carry" | "type";
 
 /** How many cursors a part needs. Only long text is shared. */
 export function crewSize(el: HTMLElement, kind: Kind): number {
-  return kind === "type" ? clamp(Math.ceil(chars(el).length / 40), 1, 5) : 1;
+  return kind === "type" ? clamp(Math.ceil(chars(el).length / 90), 1, 3) : 1;
 }
 
 export function run(kind: Kind, el: HTMLElement, crew: Agent[], ov: Overlay): Promise<void> {
@@ -35,18 +35,21 @@ async function frame(el: HTMLElement, a: Agent, ov: Overlay) {
   a.cursor = "arrow";
   await a.moveTo(r.x, r.y);
   a.cursor = "cross";
+  await sleep(rand(180, 320));
   a.pressed = true;
   const m = ov.rect(r.x, r.y, 0, 0);
   const sync = () => {
     m.w = a.x - r.x; m.h = a.y - r.y;
     m.label = `${Math.round(Math.abs(m.w))} × ${Math.round(Math.abs(m.h))}`;
   };
-  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 0.75, 320, 850), curve: 0, onUpdate: sync });
+  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 2.4, 900, 2400), curve: 0, onUpdate: sync });
   m.w = r.w; m.h = r.h;
+  await sleep(rand(150, 260));
   place(el);
   a.pressed = false;
   a.cursor = "arrow";
-  ov.fade(m, 60);
+  ov.fade(m, 120);
+  await sleep(200);
 }
 
 /* CARRY: the element appears beside its slot, gets grabbed and dropped into place. */
@@ -68,9 +71,10 @@ async function carry(el: HTMLElement, a: Agent) {
   set(sx - r.x, sy - r.y);
   el.classList.add("lifted");
   a.cursor = "grabbing";
+  await sleep(rand(200, 350));
   a.pressed = true;
   await a.moveTo(r.x + g.x, r.y + g.y, {
-    dur: clamp(Math.hypot(sx - r.x, sy - r.y) * 1.1 + 200, 340, 900),
+    dur: clamp(Math.hypot(sx - r.x, sy - r.y) * 3 + 500, 1000, 2400),
     curve: rand(-0.12, 0.12),
     onUpdate: () => set(a.x - g.x - r.x, a.y - g.y - r.y),
   });
@@ -78,6 +82,7 @@ async function carry(el: HTMLElement, a: Agent) {
   el.classList.remove("lifted");
   place(el);
   a.pressed = false;
+  await sleep(rand(150, 300));
   a.cursor = "arrow";
 }
 
@@ -99,9 +104,10 @@ async function type(el: HTMLElement, crew: Agent[]) {
         a.cursor = "arrow";
         await a.moveTo(r0.x, r0.y + r0.h / 2);
         a.cursor = "text";
+        await sleep(rand(200, 380));
         for (let j = s; j < e; j++) {
           const r = rects[j];
-          await a.moveTo(r.x + r.w, r.y + r.h / 2, { dur: clamp(r.w * 1.1, 14, 34), curve: 0, ease: linear });
+          await a.moveTo(r.x + r.w, r.y + r.h / 2, { dur: clamp(r.w * 3, 55, 95), curve: 0, ease: linear });
           reveal(cs[j], a.color);
         }
         a.cursor = "arrow";
@@ -114,7 +120,7 @@ async function type(el: HTMLElement, crew: Agent[]) {
 function reveal(c: HTMLElement, color: string) {
   c.style.color = color;
   c.classList.add("on");
-  sleep(260).then(() => { c.style.color = ""; });
+  sleep(700).then(() => { c.style.color = ""; });
 }
 
 /** Wrap every visible character of a type part in a span (screen readers get the plain text). */

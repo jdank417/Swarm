@@ -67,7 +67,7 @@ export class Assembler {
 
   start() {
     const loop = (now: number) => {
-      if (this.frame++ % 3 === 0) this.schedule();
+      if (this.frame++ % 20 === 0) this.schedule();
       for (const a of this.agents) a.update(now);
       this.flock(now);
       this.overlay.draw(this.agents, now);
@@ -102,7 +102,7 @@ export class Assembler {
 
     let started = 0;
     for (const { j, r } of scored) {
-      if (started >= 6) break;
+      if (started >= 2) break;
       const free = this.agents.filter((a) => !a.busy);
       if (!free.length) break;
       const need = crewSize(j.el, j.kind);
@@ -139,36 +139,37 @@ export class Assembler {
           x: scrollX + innerWidth * (0.5 + 0.3 * Math.sin(t * 0.31)),
           y: scrollY + innerHeight * (0.5 + 0.28 * Math.sin(t * 0.47 + 1)),
         };
-    const swirl = Math.sin(t * 0.21);
+    const swirl = Math.sin(t * 0.08);
 
     for (const a of free) {
       let n = 0, cx = 0, cy = 0, ax = 0, ay = 0, sx = 0, sy = 0;
       for (const b of free) {
         if (b === a) continue;
         const dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
-        if (d2 > 80 * 80) continue;
+        if (d2 > 60 * 60) continue;
         n++; cx += b.x; cy += b.y; ax += b.vx; ay += b.vy;
-        if (d2 < 24 * 24 && d2 > 0.01) { sx -= dx / d2; sy -= dy / d2; }
+        if (d2 < 15 * 15 && d2 > 0.01) { sx -= dx / d2; sy -= dy / d2; }
       }
-      let fx = sx * 9, fy = sy * 9;
+      let fx = sx * 2.5, fy = sy * 2.5;
       if (n) {
-        fx += (cx / n - a.x) * 0.002 + (ax / n - a.vx) * 0.05;
-        fy += (cy / n - a.y) * 0.002 + (ay / n - a.vy) * 0.05;
+        fx += (cx / n - a.x) * 0.003 + (ax / n - a.vx) * 0.04;
+        fy += (cy / n - a.y) * 0.003 + (ay / n - a.vy) * 0.04;
       }
       const dx = goal.x - a.x, dy = goal.y - a.y, d = Math.hypot(dx, dy) || 1;
-      const ring = 60 + (a.id % 6) * 16;
-      const pull = clamp((d - ring) * 0.004, -0.25, 0.7);
-      fx += (dx / d) * pull + (-dy / d) * 0.14 * swirl;
-      fy += (dy / d) * pull + (dx / d) * 0.14 * swirl;
-      fx += rand(-0.06, 0.06);
-      fy += rand(-0.06, 0.06);
+      const ring = 18 + (a.id % 6) * 7;
+      const pull = clamp((d - ring) * 0.0016, -0.06, 0.22);
+      fx += (dx / d) * pull + (-dy / d) * 0.035 * swirl;
+      fy += (dy / d) * pull + (dx / d) * 0.035 * swirl;
+      fx += rand(-0.015, 0.015);
+      fy += rand(-0.015, 0.015);
 
-      a.vx += fx;
-      a.vy += fy;
+      // Heavy damping keeps the motion slow and smooth.
+      a.vx = a.vx * 0.93 + fx;
+      a.vy = a.vy * 0.93 + fy;
       const sp = Math.hypot(a.vx, a.vy);
-      const max = (d > 500 ? 13 : 6.5) * a.agility;
+      const max = (d > 400 ? 6 : 2.6) * a.agility;
       if (sp > max) { a.vx *= max / sp; a.vy *= max / sp; }
-      else if (sp < 1) { a.vx *= 1.2; a.vy *= 1.2; }
+      else if (sp < 0.25 && d > ring + 30) { a.vx *= 1.1; a.vy *= 1.1; }
       a.x += a.vx;
       a.y += a.vy;
     }

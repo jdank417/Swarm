@@ -38,7 +38,7 @@ a { color: inherit; text-decoration: none; }
 .asm [data-part="carry"]:not(.placed):not(.lifted) { visibility: hidden; }
 .asm .ch { visibility: hidden; }
 .asm .ch.on { visibility: visible; }
-.ch { transition: color 0.4s ease-out; }
+.ch { transition: color 1.2s ease-out; }
 
 .lifted {
   position: relative; z-index: 35;
@@ -47,6 +47,7 @@ a { color: inherit; text-decoration: none; }
 }
 [data-part="frame"].placed { animation: materialize 0.25s ease-out; }
 @keyframes materialize { from { opacity: 0; } }
+[data-part="frame"].placed { animation-duration: 0.6s; }
 
 /* ---------- nav ---------- */
 .nav {
