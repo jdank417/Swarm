@@ -20,17 +20,15 @@ removed the moment it takes over.
 
 ## How the cursors move
 
-Like a real multiplayer app, each agent only sends its position every 45–85 ms. The visible cursor
-interpolates those samples along a spline with [perfect-cursors](https://github.com/steveruizok/perfect-cursors)
-(MIT, by Steve Ruiz, the library tldraw uses for remote cursors), so it trails the agent slightly and
-moves the way a collaborator's cursor does. Anything an agent is dragging follows its visible cursor.
-
+Agents make short, eased flights sized to the distance (about 140–520 ms), stop to do the work, then
+move on, the way the reference [califa/swarm-site](https://califa.github.io/swarm-site/) moves. Each
+cursor is redrawn from its agent's position every frame, and anything being dragged follows it exactly.
 The shared task board, where agents claim work themselves, is inspired by
 [tldraw's agents on the canvas](https://tldraw.dev/starter-kits/agent).
 
 ## Stack
 
-Vite + TypeScript, with perfect-cursors as the only runtime dependency. Deployed to GitHub Pages by
+Vite + TypeScript, no runtime dependencies. Deployed to GitHub Pages by
 `.github/workflows/deploy.yml` on every push to `main`.
 
 ```sh

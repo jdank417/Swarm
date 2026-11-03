@@ -63,7 +63,7 @@ export class Board {
     }
     if (!ready.length) return null;
     const mine = ready.filter((t) => ROLE_FOR[t.kind] === agent.role);
-    const pool = mine.length ? mine : ready.filter((t) => now - (t.readySince ?? now) > 900);
+    const pool = mine.length ? mine : ready.filter((t) => now - (t.readySince ?? now) > 250);
     if (!pool.length) return null;
     const score = (t: Task) => {
       const r = pageRect(t.kind === "dup" && t.source ? t.source : t.el);

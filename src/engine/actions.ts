@@ -15,10 +15,6 @@ export function place(el: HTMLElement) {
 }
 
 export async function perform(a: Agent, t: Task, ov: Overlay) {
-  const r = pageRect(t.kind === "dup" && t.source ? t.source : t.el);
-  // A brief pause to "decide", already drifting toward the job.
-  const k = rand(0.1, 0.25);
-  await a.moveTo(a.x + (r.x + r.w / 2 - a.x) * k, a.y + (r.y + r.h / 2 - a.y) * k, { dur: rand(160, 420) });
   if (t.kind === "line") await line(a, t.el, ov);
   else if (t.kind === "rect") await rect(a, t.el, ov);
   else if (t.kind === "text") await text(a, t.el, ov);
@@ -32,9 +28,8 @@ async function line(a: Agent, el: HTMLElement, ov: Overlay) {
   const horiz = r.w >= r.h;
   a.cursor = "arrow";
   await a.moveTo(r.x, r.y);
-  await a.settle();
   a.cursor = "cross";
-  await sleep(rand(80, 160));
+  await sleep(rand(30, 70));
   const b = ov.box(`lbox ${horiz ? "h" : "v"}`, a.color);
   ov.active.add(r);
   const stop = a.follow((x, y) => {
@@ -42,8 +37,7 @@ async function line(a: Agent, el: HTMLElement, ov: Overlay) {
     else Overlay.place(b, r.x, r.y, 1, clamp(y - r.y, 0, r.h));
   });
   const len = horiz ? r.w : r.h;
-  await a.moveTo(horiz ? r.x + r.w : r.x, horiz ? r.y : r.y + r.h, { dur: clamp(len * 0.7, 380, 1500), curve: 0 });
-  await a.settle();
+  await a.moveTo(horiz ? r.x + r.w : r.x, horiz ? r.y : r.y + r.h, { dur: clamp(len * 0.3, 220, 700), curve: 0 });
   stop();
   place(el);
   ov.active.delete(r);
@@ -55,9 +49,8 @@ async function rect(a: Agent, el: HTMLElement, ov: Overlay) {
   const r = pageRect(el);
   a.cursor = "arrow";
   await a.moveTo(r.x, r.y);
-  await a.settle();
   a.cursor = "cross";
-  await sleep(rand(80, 160));
+  await sleep(rand(30, 70));
   const b = ov.box("rbox", a.color);
   b.innerHTML = `<span class="dim"></span>`;
   const dim = b.firstElementChild as HTMLElement;
@@ -68,12 +61,11 @@ async function rect(a: Agent, el: HTMLElement, ov: Overlay) {
     Overlay.place(b, r.x, r.y, w, h);
     dim.textContent = `${Math.round(w)} × ${Math.round(h)}`;
   });
-  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 1.1, 450, 1300), curve: 0 });
-  await a.settle();
+  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 0.45, 200, 520), curve: 0 });
   stop();
   Overlay.place(b, r.x, r.y, r.w, r.h);
   dim.textContent = `${Math.round(r.w)} × ${Math.round(r.h)}`;
-  await sleep(rand(80, 160));
+  await sleep(rand(40, 90));
 
   // Fill: the placeholder takes on the element's background, radius and border.
   const cs = getComputedStyle(el);
@@ -83,7 +75,7 @@ async function rect(a: Agent, el: HTMLElement, ov: Overlay) {
   b.style.borderRadius = cs.borderRadius;
   b.style.boxShadow = bw ? `inset 0 0 0 ${bw}px ${cs.borderTopColor}` : "none";
   a.cursor = "arrow";
-  await sleep(280);
+  await sleep(170);
   place(el);
   ov.active.delete(r);
   unguide();
@@ -97,15 +89,13 @@ async function text(a: Agent, el: HTMLElement, ov: Overlay) {
   const r = union(rects) ?? pageRect(el);
   a.cursor = "arrow";
   await a.moveTo(r.x, r.y);
-  await a.settle();
   a.cursor = "text";
-  await sleep(rand(60, 140));
+  await sleep(rand(20, 60));
   const b = ov.box("tbox", a.color);
   ov.active.add(r);
   const unguide = ov.guides(r.x, r.y);
   const stop = a.follow((x, y) => Overlay.place(b, r.x, r.y, clamp(x - r.x, 0, r.w), clamp(y - r.y, 0, r.h)));
-  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 0.8, 320, 900), curve: 0 });
-  await a.settle();
+  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 0.35, 160, 420), curve: 0 });
   stop();
   Overlay.place(b, r.x, r.y, r.w, r.h);
   await typeChars(a, cs, rects);
@@ -122,9 +112,8 @@ async function dup(a: Agent, t: Task, ov: Overlay) {
   const g = { x: s.w * rand(0.35, 0.65), y: s.h * rand(0.35, 0.65) };
   a.cursor = "arrow";
   await a.moveTo(s.x + g.x, s.y + g.y);
-  await a.settle();
   a.cursor = "copy";
-  await sleep(rand(120, 220));
+  await sleep(rand(50, 110));
 
   // The copy lives next to the original so it keeps the same styling.
   const parent = el.parentElement!;
@@ -148,8 +137,7 @@ async function dup(a: Agent, t: Task, ov: Overlay) {
     badge.style.top = `${s.y + oy - 10}px`;
     badge.textContent = `${Math.round(Math.hypot(ox, oy))}`;
   });
-  await a.moveTo(d.x + g.x, d.y + g.y, { dur: clamp(Math.hypot(d.x - s.x, d.y - s.y) * 1.2 + 300, 500, 1500) });
-  await a.settle();
+  await a.moveTo(d.x + g.x, d.y + g.y, { dur: clamp(Math.hypot(d.x - s.x, d.y - s.y) * 0.5 + 150, 250, 650) });
   stop();
   ghost.style.transform = `translate(${d.x - s.x}px, ${d.y - s.y}px)`;
   ghost.style.width = `${d.w}px`;
@@ -180,10 +168,9 @@ async function retype(a: Agent, old: HTMLElement | null, el: HTMLElement, ov: Ov
   const o = old ? pageRect(old) : r;
   a.cursor = "text";
   await a.moveTo(o.x + o.w + 1, o.y + o.h / 2);
-  await a.settle();
   if (old) {
     old.classList.add("selecting");
-    await sleep(rand(260, 420));
+    await sleep(rand(140, 220));
     old.style.visibility = "hidden";
   }
   const b = ov.box("tbox", a.color);
@@ -197,21 +184,21 @@ async function retype(a: Agent, old: HTMLElement | null, el: HTMLElement, ov: Ov
 async function typeChars(a: Agent, cs: HTMLElement[], rects: Rect[]) {
   if (!cs.length) return;
   const r0 = rects[0];
-  await a.moveTo(r0.x, r0.y + r0.h / 2, { dur: 160, curve: 0 });
+  await a.moveTo(r0.x, r0.y + r0.h / 2, { dur: 90, curve: 0 });
   let i = 0;
   while (i < cs.length) {
-    const n = Math.min(cs.length - i, 1 + ((Math.random() * 3) | 0));
+    const n = Math.min(cs.length - i, 2 + ((Math.random() * 3) | 0));
     for (let j = 0; j < n; j++) reveal(cs[i + j], a.color);
     i += n;
     const last = rects[i - 1];
-    await a.moveTo(last.x + last.w + 1, last.y + last.h / 2, { dur: rand(30, 70), curve: 0, ease: linear });
+    await a.moveTo(last.x + last.w + 1, last.y + last.h / 2, { dur: rand(18, 34), curve: 0, ease: linear });
   }
 }
 
 function reveal(c: HTMLElement, color: string) {
   c.style.color = color;
   c.classList.add("on");
-  sleep(700).then(() => { c.style.color = ""; });
+  sleep(180).then(() => { c.style.color = ""; });
 }
 
 export function chars(el: HTMLElement): HTMLElement[] {

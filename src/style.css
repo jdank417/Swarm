@@ -90,7 +90,7 @@ a { color: inherit; text-decoration: none; }
 .asm [data-part="dup"]:not(.placed) { visibility: hidden; }
 .asm .ch { visibility: hidden; }
 .asm .ch.on { visibility: visible; }
-.ch { transition: color .9s ease-out; }
+.ch { transition: color .35s ease-out; }
 
 /* ---------- layout ---------- */
 .sec { position: relative; }

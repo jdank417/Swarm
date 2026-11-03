@@ -70,7 +70,7 @@ export class Swarm {
   }
 
   /** Orbit the logo for a moment, then start work. */
-  async start(logo: HTMLElement | null, introMs = 1600) {
+  async start(logo: HTMLElement | null, introMs = 1100) {
     if (logo) {
       const r = logo.getBoundingClientRect();
       this.intro = { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY };
@@ -78,7 +78,7 @@ export class Swarm {
     const loop = (now: number) => {
       for (const a of this.agents) a.step(now);
       this.flock(now);
-      for (const a of this.agents) a.transmit(now);
+      for (const a of this.agents) a.sync();
       this.rulers?.draw(this.overlay.active, this.pointer);
       this.onStats?.({
         agents: this.agents.length,
@@ -97,10 +97,10 @@ export class Swarm {
 
   /** Each agent runs its own loop: check the board, claim a task, do it. */
   private async live(a: Agent) {
-    await sleep(rand(0, 700));
+    await sleep(rand(0, 250));
     for (;;) {
       const task = this.board.claim(a, performance.now());
-      if (!task) { await sleep(rand(160, 420)); continue; }
+      if (!task) { await sleep(rand(30, 110)); continue; }
       a.busy = true;
       try {
         await perform(a, task, this.overlay);
@@ -111,7 +111,7 @@ export class Swarm {
       this.board.complete(task);
       a.busy = false;
       a.cursor = "arrow";
-      await sleep(rand(40, 160));
+      await sleep(rand(0, 50));
     }
   }
 
@@ -153,7 +153,7 @@ export class Swarm {
       a.vx = a.vx * 0.93 + fx + rand(-0.015, 0.015);
       a.vy = a.vy * 0.93 + fy + rand(-0.015, 0.015);
       const sp = Math.hypot(a.vx, a.vy);
-      const max = (orbit ? 3.4 : d > 400 ? 6 : 2.6) * a.agility;
+      const max = (orbit ? 3.8 : d > 400 ? 9 : 3.2) * a.agility;
       if (sp > max) { a.vx *= max / sp; a.vy *= max / sp; }
       a.x += a.vx;
       a.y += a.vy;

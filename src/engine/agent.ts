@@ -1,5 +1,6 @@
-import { PerfectCursor } from "perfect-cursors";
-import { clamp, easeInOut, rand, sleep } from "./util";
+import { clamp, rand } from "./util";
+
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export type CursorKind = "arrow" | "cross" | "text" | "copy";
 export type Role = "layout" | "copy" | "build";
@@ -23,27 +24,23 @@ const GLYPHS = `
 <svg class="g g-text" width="12" height="20" viewBox="-6 -10 12 20"><path class="o" d="M-3.5-8h2.5m2 0h2.5M0-7V7M-3.5 8h2.5m2 0h2.5"/><path class="s" d="M-3.5-8h2.5m2 0h2.5M0-7V7M-3.5 8h2.5m2 0h2.5"/></svg>`;
 
 /**
- * One AI agent. Its "brain" position is what it decides; its body (the cursor
- * you see) only receives position samples every 45-85 ms, like a remote
- * collaborator. perfect-cursors interpolates the samples along a spline, so
- * the visible cursor trails slightly and moves like a real multiplayer cursor.
+ * One AI agent and its cursor. Moves are short, eased flights sized to the
+ * distance; the cursor is redrawn from the agent's position every frame.
  */
 export class Agent {
   x: number; y: number;
   vx = 0; vy = 0;
-  dx: number; dy: number;
+  private lx: number; private ly: number;
   busy = false;
   readonly agility = rand(0.85, 1.2);
   readonly el: HTMLDivElement;
   private heading = rand(0, Math.PI * 2);
   private tw: Tween | null = null;
-  private pc: PerfectCursor;
-  private nextSend = 0;
   private followers = new Set<(x: number, y: number) => void>();
 
   constructor(layer: HTMLElement, readonly id: number, readonly role: Role, readonly color: string, x: number, y: number) {
-    this.x = this.dx = x;
-    this.y = this.dy = y;
+    this.x = this.lx = x;
+    this.y = this.ly = y;
     const el = document.createElement("div");
     el.className = "agent";
     el.dataset.cursor = "arrow";
@@ -51,8 +48,7 @@ export class Agent {
     el.innerHTML = GLYPHS;
     layer.appendChild(el);
     this.el = el;
-    this.pc = new PerfectCursor(([px, py]) => this.render(px, py));
-    this.pc.addPoint([x, y]);
+    this.sync();
   }
 
   get moving() { return this.tw !== null; }
@@ -60,22 +56,16 @@ export class Agent {
 
   follow(fn: (x: number, y: number) => void) {
     this.followers.add(fn);
-    fn(this.dx, this.dy);
+    fn(this.x, this.y);
     return () => this.followers.delete(fn);
-  }
-
-  /** Resolve once the visible cursor has caught up with the brain. */
-  async settle(max = 400) {
-    const t0 = performance.now();
-    while (Math.hypot(this.dx - this.x, this.dy - this.y) > 1 && performance.now() - t0 < max) await sleep(16);
   }
 
   moveTo(tx: number, ty: number, o: MoveOpts = {}): Promise<void> {
     this.tw?.resolve();
     const dx = tx - this.x, dy = ty - this.y;
     const d = Math.hypot(dx, dy);
-    const dur = o.dur ?? clamp(d * 0.9 + 280, 320, 1300);
-    const curve = o.curve ?? rand(-0.14, 0.14);
+    const dur = o.dur ?? clamp(110 + d * 0.38, 140, 520);
+    const curve = o.curve ?? rand(-0.1, 0.1);
     let cx = (this.x + tx) / 2 - dy * curve;
     let cy = (this.y + ty) / 2 + dx * curve;
     const sp = Math.hypot(this.vx, this.vy);
@@ -85,7 +75,7 @@ export class Agent {
       cy = cy * 0.5 + (this.y + (this.vy / sp) * k) * 0.5;
     }
     return new Promise((resolve) => {
-      this.tw = { fx: this.x, fy: this.y, cx, cy, tx, ty, t0: performance.now(), dur, ease: o.ease ?? easeInOut, resolve };
+      this.tw = { fx: this.x, fy: this.y, cx, cy, tx, ty, t0: performance.now(), dur, ease: o.ease ?? easeInOutCubic, resolve };
     });
   }
 
@@ -102,22 +92,18 @@ export class Agent {
     if (k >= 1) { this.tw = null; w.resolve(); }
   }
 
-  transmit(now: number) {
-    if (now < this.nextSend) return;
-    this.nextSend = now + rand(45, 85);
-    this.pc.addPoint([this.x, this.y]);
-  }
-
-  private render(x: number, y: number) {
-    const mx = x - this.dx, my = y - this.dy;
+  /** Draw the cursor where the agent is, turning it toward its direction of travel. */
+  sync() {
+    const x = this.x, y = this.y;
+    const mx = x - this.lx, my = y - this.ly;
     if (mx * mx + my * my > 0.25) {
       // Turn smoothly toward the direction of travel.
       let diff = Math.atan2(my, mx) - this.heading;
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
       this.heading += diff * 0.25;
     }
-    this.dx = x;
-    this.dy = y;
+    this.lx = x;
+    this.ly = y;
     this.el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     this.el.style.setProperty("--rot", `${this.heading}rad`);
     for (const f of this.followers) f(x, y);
