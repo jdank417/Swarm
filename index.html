@@ -4,109 +4,136 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jason Dank — Software Engineer</title>
-  <meta name="description" content="Portfolio of Jason Dank, full-stack software engineer." />
+  <meta name="description" content="Portfolio of Jason Dank, full-stack software engineer. Built live by a swarm of agents as you scroll." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
+  <!--
+    How the page gets built. Inside each [data-assemble] section:
+      data-part="line"  a hairline an agent drags from end to end
+      data-part="rect"  a box dragged out as a grey placeholder, then filled
+      data-part="text"  a text box dragged out, then typed into
+      data-dup          on a container: the first child is built normally, the
+                        rest are alt-drag copies of it with their text retyped
+    A part waits for the part it sits inside.
+  -->
+  <canvas id="ruler-top" class="ruler top" aria-hidden="true"></canvas>
+  <canvas id="ruler-left" class="ruler left" aria-hidden="true"></canvas>
+  <div id="intro-logo" class="intro-logo" aria-hidden="true"><span>JD</span></div>
   <div id="agents" aria-hidden="true"></div>
 
-  <header class="nav">
-    <a class="brand" href="#top"><span class="brand-tile">JD</span><b>Jason</b>&nbsp;Dank</a>
-    <nav>
-      <a href="#about">About</a>
-      <a href="#work">Work</a>
-      <a href="#stack">Stack</a>
-      <a href="#repos">Repos</a>
-      <a href="#contact">Contact</a>
-    </nav>
-    <a class="btn small" href="https://github.com/jdank417" target="_blank" rel="noopener">GitHub ↗</a>
+  <header class="sec" data-assemble="nav">
+    <div class="wrap nav">
+      <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+      <a class="brand" href="#top"><span class="logo" data-part="rect"><b>JD</b></span><span data-part="text">Jason Dank</span></a>
+      <nav class="links" data-dup>
+        <a href="#work" data-part="text">Work</a>
+        <a href="#about" data-part="text">About</a>
+        <a href="#stack" data-part="text">Stack</a>
+        <a href="#repos" data-part="text">Repos</a>
+      </nav>
+      <a class="btn dark small" data-part="rect" href="https://github.com/jdank417" target="_blank" rel="noopener"><span data-part="text">GitHub</span></a>
+    </div>
+    <i class="hl" data-part="line"></i>
   </header>
 
   <main id="top">
-    <!--
-      Assembly markup:
-        data-assemble="name"  a component, built when it scrolls into view
-        data-part="frame"     cursors drag out a selection box, then it appears
-        data-part="carry"     cursors drag the element into place
-        data-part="type"      cursors type the text character by character
-      A part waits for the part it sits inside to finish first.
-    -->
-    <section class="hero" data-assemble="section.hero">
-      <div class="hero-copy">
-        <p class="tag mono"><i class="dot live"></i><span data-part="type">Full-stack software engineer</span></p>
-        <h1 data-part="type">I build software<br /><span class="dim">that works.</span></h1>
-        <p class="lead" data-part="type">
-          I design and build full-stack applications, from computer-vision authentication
-          to real-time tracking systems and ML experiments. I care about clean architecture
-          and code that's easy to run.
-        </p>
-        <div class="cta">
-          <a class="btn primary" data-part="carry" href="#work">See the work</a>
-          <a class="btn ghost" data-part="carry" href="#contact">Get in touch →</a>
+    <section class="sec" data-assemble="hero">
+      <div class="wrap hero">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i><i class="vl mid" data-part="line"></i>
+        <div class="hero-copy">
+          <p class="eyebrow mono" data-part="text">Full-stack software engineer</p>
+          <h1 data-part="text">I build software<br />that holds up.</h1>
+          <p class="lead" data-part="text">From computer-vision authentication to real-time race tracking and fine-tuned models. Clean architecture, code that's easy to run.</p>
+          <div class="cta">
+            <a class="btn dark" data-part="rect" href="#work"><span data-part="text">See the work</span></a>
+            <a class="btn light" data-part="rect" href="#contact"><span data-part="text">Get in touch</span></a>
+          </div>
+        </div>
+        <div class="term" data-part="rect">
+          <p class="term-head mono" data-part="text">~/jdank417 $ ls projects</p>
+          <div class="term-rows" id="term-rows" data-dup></div>
+          <div class="bar" data-part="rect"><i></i></div>
+          <p class="term-foot mono" data-part="text">4 featured · 12 more on github</p>
         </div>
       </div>
-      <div class="hero-art" data-part="frame"><canvas id="orb"></canvas></div>
-      <div class="stats">
-        <div class="stat" data-part="carry" data-label="stat tile · repos"><b data-count="40" data-suffix="+">40+</b><span class="mono">repos</span></div>
-        <div class="stat" data-part="carry" data-label="stat tile · languages"><b data-count="6">6</b><span class="mono">languages</span></div>
-        <div class="stat" data-part="carry" data-label="stat tile · thing at a time"><b data-count="1">1</b><span class="mono">thing at a time</span></div>
+      <i class="hl" data-part="line"></i>
+    </section>
+
+    <section class="sec" data-assemble="strip">
+      <div class="wrap strip">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+        <p class="mono label" data-part="text">Built with</p>
+        <ul class="chips" id="strip-chips" data-dup></ul>
       </div>
+      <i class="hl" data-part="line"></i>
     </section>
 
-    <section id="about" data-assemble="section.about">
-      <p class="eyebrow mono" data-part="type">// about</p>
-      <h2 data-part="type">Engineering depth <span class="dim">is the product.</span></h2>
-      <div class="grid3">
-        <article class="card" data-part="frame">
-          <h3 class="mono" data-part="type">01 / Backend</h3>
-          <p data-part="type">REST APIs in Flask, session handling, API-key auth, rate limiting, and deployment.</p>
-        </article>
-        <article class="card" data-part="frame">
-          <h3 class="mono" data-part="type">02 / Frontend</h3>
-          <p data-part="type">Angular and plain TypeScript. Real-time UIs, camera and canvas work.</p>
-        </article>
-        <article class="card" data-part="frame">
-          <h3 class="mono" data-part="type">03 / ML &amp; Vision</h3>
-          <p data-part="type">MediaPipe landmark detection, fine-tuned language models, and time-series forecasting.</p>
-        </article>
+    <section class="sec" id="about" data-assemble="about">
+      <div class="wrap">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+        <h2 data-part="text">Engineering depth<br />is the product.</h2>
+        <p class="lead" data-part="text">I work across the stack and care most about the parts people don't see.</p>
+        <div class="grid3" data-dup>
+          <article class="card" data-part="rect">
+            <h3 data-part="text">Backend</h3>
+            <p data-part="text">REST APIs in Flask, sessions, API-key auth, rate limiting and deployment.</p>
+          </article>
+          <article class="card" data-part="rect">
+            <h3 data-part="text">Frontend</h3>
+            <p data-part="text">Angular and TypeScript. Real-time UIs, camera input and canvas work.</p>
+          </article>
+          <article class="card" data-part="rect">
+            <h3 data-part="text">ML &amp; vision</h3>
+            <p data-part="text">MediaPipe landmarks, fine-tuned language models and forecasting.</p>
+          </article>
+        </div>
       </div>
+      <i class="hl" data-part="line"></i>
     </section>
 
-    <section id="work">
-      <div data-assemble="section.work">
-        <p class="eyebrow mono" data-part="type">// selected work</p>
-        <h2 data-part="type">Proof lives in <span class="dim">what I ship.</span></h2>
+    <div id="work"></div>
+    <div id="projects"></div>
+
+    <section class="sec" id="stack" data-assemble="stack">
+      <div class="wrap">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+        <h2 data-part="text">Tools I reach for first.</h2>
+        <div class="grid4" id="stack-grid"></div>
       </div>
-      <div id="projects"></div>
+      <i class="hl" data-part="line"></i>
     </section>
 
-    <section id="stack" data-assemble="section.stack">
-      <p class="eyebrow mono" data-part="type">// stack</p>
-      <h2 data-part="type">Tools I reach for <span class="dim">first.</span></h2>
-      <div class="grid4" id="stack-grid"></div>
-    </section>
-
-    <section id="repos" data-assemble="section.repos">
-      <p class="eyebrow mono" data-part="type">// more on github</p>
-      <h2 data-part="type">Everything else <span class="dim">I've built.</span></h2>
-      <div class="repo-grid" id="repo-grid"></div>
-    </section>
-
-    <section id="contact" data-assemble="section.contact">
-      <p class="eyebrow mono" data-part="type">// contact</p>
-      <h2 data-part="type">Let's build <span class="dim">something.</span></h2>
-      <div class="cta">
-        <a class="btn primary" data-part="carry" href="https://github.com/jdank417" target="_blank" rel="noopener">github.com/jdank417</a>
+    <section class="sec" id="repos" data-assemble="repos">
+      <div class="wrap">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+        <h2 data-part="text">Everything else I've built.</h2>
+        <div class="repo-grid" id="repo-grid" data-dup></div>
       </div>
+      <i class="hl" data-part="line"></i>
+    </section>
+
+    <section class="sec" id="contact" data-assemble="contact">
+      <div class="wrap contact">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+        <h2 data-part="text">Let's build something.</h2>
+        <p class="lead" data-part="text">The fastest way to reach me is through GitHub.</p>
+        <div class="cta">
+          <a class="btn dark" data-part="rect" href="https://github.com/jdank417" target="_blank" rel="noopener"><span data-part="text">github.com/jdank417</span></a>
+        </div>
+      </div>
+      <i class="hl" data-part="line"></i>
     </section>
   </main>
 
-  <aside id="feed" class="feed mono" aria-hidden="true">
-    <div class="feed-head"><i class="dot live"></i><span id="feed-agents">agents</span><span id="feed-parts"></span></div>
-    <ol id="feed-log"></ol>
-  </aside>
+  <footer class="sec" data-assemble="footer">
+    <div class="wrap foot">
+      <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i>
+      <p class="mono" data-part="text">© Jason Dank · built live by agents as you scroll</p>
+    </div>
+  </footer>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

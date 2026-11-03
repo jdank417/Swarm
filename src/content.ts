@@ -63,36 +63,50 @@ export const STACK: { group: string; items: string[] }[] = [
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+const chip = (t: string) => `<li class="chip" data-part="rect"><span data-part="text">${esc(t)}</span></li>`;
+
 export function renderProjects(host: HTMLElement) {
+  host.innerHTML = PROJECTS.map((p, i) => `
+    <section class="sec" data-assemble="project.${slug(p.title)}">
+      <div class="wrap project${i % 2 ? " flip" : ""}">
+        <i class="vl l" data-part="line"></i><i class="vl r" data-part="line"></i><i class="vl mid" data-part="line"></i>
+        <div class="p-copy">
+          <p class="kicker mono" data-part="text">${String(i + 1).padStart(2, "0")} · ${esc(p.kicker)}</p>
+          <h3 class="p-title" data-part="text">${esc(p.title)}</h3>
+          <p class="p-desc" data-part="text">${esc(p.desc)}</p>
+          <ul class="chips" data-dup>${p.tags.map(chip).join("")}</ul>
+          <a class="p-link mono" data-part="text" href="${esc(p.link)}" target="_blank" rel="noopener">View on GitHub →</a>
+        </div>
+        <div class="p-visual" data-part="rect"><canvas data-visual="${p.visual}"></canvas></div>
+      </div>
+      <i class="hl" data-part="line"></i>
+    </section>`).join("");
+}
+
+export function renderTerm(host: HTMLElement) {
   host.innerHTML = PROJECTS.map((p) => `
-    <article class="project" data-assemble="project.${slug(p.title)}">
-      <div class="p-copy">
-        <div class="p-kicker" data-part="type">${esc(p.kicker)}</div>
-        <h3 class="p-title" data-part="type">${esc(p.title)}</h3>
-        <p class="p-desc" data-part="type">${esc(p.desc)}</p>
-        <ul class="p-tags">${p.tags.map((t) => `<li data-part="carry">${esc(t)}</li>`).join("")}</ul>
-        <a class="p-link" data-part="carry" href="${esc(p.link)}" target="_blank" rel="noopener">View ${esc(p.title)} ↗</a>
-      </div>
-      <div class="p-visual" data-part="frame">
-        <span class="live-badge"><i class="dot live"></i>LIVE</span>
-        <canvas data-visual="${p.visual}"></canvas>
-      </div>
-    </article>`).join("");
+    <div class="row" data-part="rect">
+      <b class="mono" data-part="text">${esc(slug(p.title))}</b>
+      <span class="mono" data-part="text">${esc(p.tags.slice(0, 3).join(" · ").toLowerCase())}</span>
+    </div>`).join("");
+}
+
+export function renderStrip(host: HTMLElement) {
+  host.innerHTML = ["Python", "TypeScript", "Flask", "Angular", "MediaPipe", "Transformers", "Vite", "GitHub Actions"].map(chip).join("");
 }
 
 export function renderStack(host: HTMLElement) {
   host.innerHTML = STACK.map((g) => `
-    <article class="card" data-part="frame">
-      <h3 class="mono" data-part="type">${esc(g.group)}</h3>
-      <ul class="chips">${g.items.map((i) => `<li data-part="carry">${esc(i)}</li>`).join("")}</ul>
+    <article class="card" data-part="rect">
+      <h3 data-part="text">${esc(g.group)}</h3>
+      <ul class="chips" data-dup>${g.items.map(chip).join("")}</ul>
     </article>`).join("");
 }
 
 export function renderRepos(host: HTMLElement) {
   host.innerHTML = REPOS.map((name) => `
-    <a class="repo" data-part="frame" href="https://github.com/jdank417/${encodeURIComponent(name)}" target="_blank" rel="noopener">
-      <span class="repo-owner mono" data-part="type">jdank417 /</span>
-      <span class="repo-name" data-part="type">${esc(name)}</span>
-      <span class="repo-go mono" data-part="carry">open ↗</span>
+    <a class="repo" data-part="rect" href="https://github.com/jdank417/${encodeURIComponent(name)}" target="_blank" rel="noopener">
+      <span class="r-owner mono" data-part="text">jdank417 /</span>
+      <span class="r-name" data-part="text">${esc(name)}</span>
     </a>`).join("");
 }

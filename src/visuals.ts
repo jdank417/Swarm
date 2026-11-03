@@ -33,7 +33,7 @@ export function orb(c: HTMLCanvasElement) {
       const s = 2.2 / (2.6 - Z);
       return [w / 2 + X * R * s, h / 2 + Y * R * s, Z];
     });
-    ctx.strokeStyle = "rgba(42,108,255,.14)";
+    ctx.strokeStyle = "rgba(17,19,23,.08)";
     for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(w / 2, h / 2, R * 0.5 * k, 0, Math.PI * 2); ctx.stroke(); }
     ctx.lineWidth = 1.4;
     for (const [i, j] of E) {
@@ -41,7 +41,7 @@ export function orb(c: HTMLCanvasElement) {
       ctx.beginPath(); ctx.moveTo(P[i][0], P[i][1]); ctx.lineTo(P[j][0], P[j][1]); ctx.stroke();
     }
     P.forEach(([x, y, z], i) => {
-      ctx.fillStyle = i % 3 === 0 ? "#ffb020" : "#2a6cff";
+      ctx.fillStyle = i % 3 === 0 ? "#ff7a1a" : "#2a6cff";
       ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 12;
       ctx.beginPath(); ctx.arc(x, y, 3.5 + z * 1.5, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
@@ -54,7 +54,7 @@ export function projectVisual(c: HTMLCanvasElement) {
   const kind = c.dataset.visual;
   const seed = Array.from({ length: 24 }, () => Math.random());
   animate(c, (ctx, w, h, t) => {
-    ctx.strokeStyle = "rgba(42,108,255,.12)";
+    ctx.strokeStyle = "rgba(17,19,23,.06)";
     ctx.lineWidth = 1;
     for (let x = 0; x < w; x += 24) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
     for (let y = 0; y < h; y += 24) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
@@ -68,7 +68,7 @@ export function projectVisual(c: HTMLCanvasElement) {
       seed.slice(0, 7).forEach((s, i) => {
         const a = s * 6.28 + t * 0.15 * (i % 2 ? 1 : -1), r = R * (0.25 + seed[i + 8] * 0.7);
         const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
-        ctx.fillStyle = i === 0 ? "#ffb020" : "#7cc4ff";
+        ctx.fillStyle = i === 0 ? "#ff7a1a" : "#2a6cff";
         ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 4, y + 4); ctx.lineTo(x - 4, y + 4); ctx.fill();
       });
     } else if (kind === "mesh") {
@@ -83,16 +83,16 @@ export function projectVisual(c: HTMLCanvasElement) {
       ctx.stroke();
       for (const [ox, oy] of [[-0.12, -0.08], [0.12, -0.08], [0, 0.04], [-0.08, 0.14], [0.08, 0.14], [0, 0.16]]) {
         const x = cx + ox * w, y = cy + oy * h;
-        ctx.strokeStyle = "rgba(94,242,176,.35)"; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
-        ctx.fillStyle = "#5ef2b0"; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
+        ctx.strokeStyle = "rgba(18,184,134,.45)"; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
+        ctx.fillStyle = "#12b886"; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
       }
       const sy = cy + Math.sin(t * 1.5) * h * 0.35;
-      ctx.strokeStyle = "rgba(255,59,59,.8)"; ctx.beginPath(); ctx.moveTo(w * 0.15, sy); ctx.lineTo(w * 0.85, sy); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,77,109,.85)"; ctx.beginPath(); ctx.moveTo(w * 0.15, sy); ctx.lineTo(w * 0.85, sy); ctx.stroke();
     } else if (kind === "bars") {
       const n = 14, bw = (w * 0.8) / n;
       for (let i = 0; i < n; i++) {
         const v = 0.2 + 0.7 * Math.abs(Math.sin(seed[i] * 6 + t * (0.6 + seed[i])));
-        ctx.fillStyle = i % 5 === 0 ? "#ffb020" : "rgba(42,108,255,.85)";
+        ctx.fillStyle = i % 5 === 0 ? "#ff7a1a" : "rgba(42,108,255,.85)";
         ctx.fillRect(w * 0.1 + i * bw + 3, h * 0.85 - v * h * 0.65, bw - 6, v * h * 0.65);
       }
     } else {
@@ -103,7 +103,7 @@ export function projectVisual(c: HTMLCanvasElement) {
         if (x) ctx.lineTo(x, y); else ctx.moveTo(x, y);
       }
       ctx.stroke();
-      ctx.strokeStyle = "#ffb020"; ctx.setLineDash([4, 6]);
+      ctx.strokeStyle = "#ff7a1a"; ctx.setLineDash([4, 6]);
       ctx.beginPath(); ctx.moveTo(w * 0.72, 0); ctx.lineTo(w * 0.72, h); ctx.stroke(); ctx.setLineDash([]);
     }
   });

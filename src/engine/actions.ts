@@ -1,12 +1,12 @@
 import type { Agent } from "./agent";
-import type { Section, Task } from "./board";
-import { clamp, linear, pageRect, rand, sleep, viewRect, inView } from "./util";
+import type { Task } from "./board";
+import { Overlay } from "./overlay";
+import { clamp, linear, pageRect, rand, sleep, type Rect } from "./util";
 
 /*
-  What an agent actually does. Every action produces a real piece of the page:
-    frame  drags out a box exactly the element's size; the element fills it
-    carry  brings the element itself in and drops it in its slot
-    type   streams the element's real text in, token by token, like an LLM
+  The design-tool gestures agents use. Each one produces a real element of the
+  page in place: the overlay drawn during the gesture sits exactly where the
+  element appears, and is removed the moment the element takes over.
 */
 
 export function place(el: HTMLElement) {
@@ -14,172 +14,243 @@ export function place(el: HTMLElement) {
   el.dispatchEvent(new CustomEvent("assembled", { bubbles: true }));
 }
 
-/** Short human-readable description of a task for status tags and the feed. */
-export function describe(t: Task): string {
-  const text = t.el.dataset.label ?? t.el.querySelector(".sr-only")?.textContent ?? words(t.el);
-  const short = text.length > 22 ? text.slice(0, 21) + "…" : text;
-  if (t.kind === "type") return `writing "${short}"`;
-  if (t.kind === "carry") return `placing "${short}"`;
-  const r = t.el.getBoundingClientRect();
-  const what = t.el.classList.contains("card") ? "card" : t.el.classList.contains("repo") ? "repo card" : "panel";
-  return `framing ${what} ${Math.round(r.width)}×${Math.round(r.height)}`;
-}
-
-/** Text of an element with a space between separate text nodes and at line breaks. */
-function words(el: HTMLElement): string {
-  const out: string[] = [];
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
-  while (walker.nextNode()) {
-    const n = walker.currentNode;
-    if (n.nodeType === Node.TEXT_NODE) out.push(n.textContent ?? "");
-    else if ((n as Element).tagName === "BR") out.push(" ");
-    else out.push(" ");
-  }
-  return out.join("").replace(/\s+/g, " ").trim();
-}
-
-/** Pause to "think" before acting, already drifting toward the job. */
-async function think(a: Agent, label: string, el: HTMLElement) {
-  a.say(label, true);
-  const r = pageRect(el);
-  const k = rand(0.15, 0.3);
-  await a.moveTo(a.x + (r.x + r.w / 2 - a.x) * k, a.y + (r.y + r.h / 2 - a.y) * k, { dur: rand(500, 1100) });
-  a.say(label);
-}
-
-/* SCOUT: look over a newly visible section, then post its tasks to the board. */
-export async function scout(a: Agent, s: Section) {
-  const r = pageRect(s.el);
-  const v = viewRect();
-  const top = clamp(r.y + 24, v.y + 80, v.y + v.h - 120);
-  const bottom = clamp(r.y + r.h - 24, top + 40, v.y + v.h - 80);
-  a.cursor = "arrow";
-  a.say(`scouting ${s.name}`, true);
-  await a.moveTo(r.x + 20, top);
-  await a.moveTo(r.x + r.w - 20, top + (bottom - top) * 0.35, { dur: clamp(r.w * 1.1, 600, 1300) });
-  await a.moveTo(r.x + r.w * 0.4, bottom, { dur: 700 });
-  a.say(`planned ${s.tasks.length} tasks`);
-  await sleep(500);
-}
-
-export async function perform(a: Agent, t: Task) {
-  const label = describe(t);
-  await think(a, label, t.el);
-  if (t.kind === "frame") await frame(a, t.el, label);
-  else if (t.kind === "carry") await carry(a, t.el);
-  else await type(a, t.el);
+export async function perform(a: Agent, t: Task, ov: Overlay) {
+  const r = pageRect(t.kind === "dup" && t.source ? t.source : t.el);
+  // A brief pause to "decide", already drifting toward the job.
+  const k = rand(0.1, 0.25);
+  await a.moveTo(a.x + (r.x + r.w / 2 - a.x) * k, a.y + (r.y + r.h / 2 - a.y) * k, { dur: rand(160, 420) });
+  if (t.kind === "line") await line(a, t.el, ov);
+  else if (t.kind === "rect") await rect(a, t.el, ov);
+  else if (t.kind === "text") await text(a, t.el, ov);
+  else await dup(a, t, ov);
   a.cursor = "arrow";
 }
 
-async function frame(a: Agent, el: HTMLElement, label: string) {
+/* LINE: drag a hairline from one end to the other. */
+async function line(a: Agent, el: HTMLElement, ov: Overlay) {
   const r = pageRect(el);
-  const layer = a.el.parentElement!;
+  const horiz = r.w >= r.h;
   a.cursor = "arrow";
   await a.moveTo(r.x, r.y);
   await a.settle();
   a.cursor = "cross";
-  await sleep(rand(150, 280));
-
-  const box = document.createElement("div");
-  box.className = "sel";
-  box.style.setProperty("--c", a.color);
-  box.innerHTML = `<span class="sel-dim"></span>`;
-  const dim = box.firstElementChild as HTMLElement;
-  layer.appendChild(box);
+  await sleep(rand(80, 160));
+  const b = ov.box(`lbox ${horiz ? "h" : "v"}`, a.color);
+  ov.active.add(r);
   const stop = a.follow((x, y) => {
-    const w = Math.max(0, x - r.x), h = Math.max(0, y - r.y);
-    box.style.left = `${r.x}px`;
-    box.style.top = `${r.y}px`;
-    box.style.width = `${w}px`;
-    box.style.height = `${h}px`;
-    dim.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+    if (horiz) Overlay.place(b, r.x, r.y, clamp(x - r.x, 0, r.w), 1);
+    else Overlay.place(b, r.x, r.y, 1, clamp(y - r.y, 0, r.h));
   });
-  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 1.7, 700, 1900), curve: 0 });
+  const len = horiz ? r.w : r.h;
+  await a.moveTo(horiz ? r.x + r.w : r.x, horiz ? r.y : r.y + r.h, { dur: clamp(len * 0.7, 380, 1500), curve: 0 });
   await a.settle();
   stop();
-  box.style.width = `${r.w}px`;
-  box.style.height = `${r.h}px`;
-  dim.textContent = label.replace(/^framing \S+( card)? /, "");
-  await sleep(rand(120, 220));
   place(el);
-  box.classList.add("out");
-  setTimeout(() => box.remove(), 400);
-  a.cursor = "arrow";
+  ov.active.delete(r);
+  ov.fadeOut(b, 250);
 }
 
-async function carry(a: Agent, el: HTMLElement) {
-  el.style.transform = "";
+/* RECT: drag out a grey placeholder, then fill it with the element's real style. */
+async function rect(a: Agent, el: HTMLElement, ov: Overlay) {
   const r = pageRect(el);
-  const v = viewRect();
-  const reach = clamp(r.w + 90, 110, 300);
-  let sx = r.w > v.w - 32 ? r.x : clamp(r.x + rand(-1, 1) * reach, v.x + 8, v.x + v.w - r.w - 8);
-  let sy = r.y + (Math.random() < 0.5 ? -1 : 1) * rand(50, 150);
-  if (inView(r)) sy = clamp(sy, v.y + 70, Math.max(v.y + 70, v.y + v.h - r.h - 50));
-  else sx = clamp(sx, 8, Math.max(8, document.documentElement.clientWidth - r.w - 8));
-  const g = { x: r.w * rand(0.3, 0.7), y: r.h * rand(0.35, 0.65) };
-
   a.cursor = "arrow";
-  await a.moveTo(sx + g.x, sy + g.y);
+  await a.moveTo(r.x, r.y);
   await a.settle();
-  // The piece appears under the cursor and is carried by the visible cursor.
-  el.classList.add("lifted");
-  const stop = a.follow((x, y) => { el.style.transform = `translate(${x - g.x - r.x}px, ${y - g.y - r.y}px)`; });
-  a.cursor = "grab";
-  await sleep(rand(160, 280));
-  a.cursor = "grabbing";
-  await a.moveTo(r.x + g.x, r.y + g.y, { dur: clamp(Math.hypot(sx - r.x, sy - r.y) * 2 + 450, 800, 1800), curve: rand(-0.1, 0.1) });
+  a.cursor = "cross";
+  await sleep(rand(80, 160));
+  const b = ov.box("rbox", a.color);
+  b.innerHTML = `<span class="dim"></span>`;
+  const dim = b.firstElementChild as HTMLElement;
+  ov.active.add(r);
+  const unguide = ov.guides(r.x, r.y);
+  const stop = a.follow((x, y) => {
+    const w = clamp(x - r.x, 0, r.w + 40), h = clamp(y - r.y, 0, r.h + 40);
+    Overlay.place(b, r.x, r.y, w, h);
+    dim.textContent = `${Math.round(w)} × ${Math.round(h)}`;
+  });
+  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 1.1, 450, 1300), curve: 0 });
   await a.settle();
   stop();
-  el.style.transform = "";
-  el.classList.remove("lifted");
+  Overlay.place(b, r.x, r.y, r.w, r.h);
+  dim.textContent = `${Math.round(r.w)} × ${Math.round(r.h)}`;
+  await sleep(rand(80, 160));
+
+  // Fill: the placeholder takes on the element's background, radius and border.
+  const cs = getComputedStyle(el);
+  const bw = parseFloat(cs.borderTopWidth) || 0;
+  b.classList.add("fill");
+  b.style.background = cs.backgroundColor;
+  b.style.borderRadius = cs.borderRadius;
+  b.style.boxShadow = bw ? `inset 0 0 0 ${bw}px ${cs.borderTopColor}` : "none";
+  a.cursor = "arrow";
+  await sleep(280);
   place(el);
-  a.cursor = "grab";
+  ov.active.delete(r);
+  unguide();
+  ov.fadeOut(b, 120);
+}
+
+/* TEXT: drag out a text box around exactly where the text goes, then type it. */
+async function text(a: Agent, el: HTMLElement, ov: Overlay) {
+  const cs = chars(el).filter((c) => !c.classList.contains("on"));
+  const rects = cs.map((c) => pageRect(c));
+  const r = union(rects) ?? pageRect(el);
+  a.cursor = "arrow";
+  await a.moveTo(r.x, r.y);
+  await a.settle();
+  a.cursor = "text";
+  await sleep(rand(60, 140));
+  const b = ov.box("tbox", a.color);
+  ov.active.add(r);
+  const unguide = ov.guides(r.x, r.y);
+  const stop = a.follow((x, y) => Overlay.place(b, r.x, r.y, clamp(x - r.x, 0, r.w), clamp(y - r.y, 0, r.h)));
+  await a.moveTo(r.x + r.w, r.y + r.h, { dur: clamp(Math.hypot(r.w, r.h) * 0.8, 320, 900), curve: 0 });
+  await a.settle();
+  stop();
+  Overlay.place(b, r.x, r.y, r.w, r.h);
+  await typeChars(a, cs, rects);
+  place(el);
+  ov.active.delete(r);
+  unguide();
+  ov.fadeOut(b, 250);
+}
+
+/* DUP: alt-drag a copy of the first item into this slot, then retype its text. */
+async function dup(a: Agent, t: Task, ov: Overlay) {
+  const src = t.source!, el = t.el;
+  const s = pageRect(src), d = pageRect(el);
+  const g = { x: s.w * rand(0.35, 0.65), y: s.h * rand(0.35, 0.65) };
+  a.cursor = "arrow";
+  await a.moveTo(s.x + g.x, s.y + g.y);
+  await a.settle();
+  a.cursor = "copy";
   await sleep(rand(120, 220));
+
+  // The copy lives next to the original so it keeps the same styling.
+  const parent = el.parentElement!;
+  const pr = pageRect(parent);
+  const ghost = src.cloneNode(true) as HTMLElement;
+  ghost.classList.add("ghost");
+  ghost.setAttribute("aria-hidden", "true");
+  ghost.removeAttribute("id");
+  ghost.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+  Object.assign(ghost.style, {
+    position: "absolute", margin: "0", left: `${s.x - pr.x - parent.clientLeft}px`, top: `${s.y - pr.y - parent.clientTop}px`,
+    width: `${s.w}px`, height: `${s.h}px`,
+  });
+  parent.appendChild(ghost);
+  const badge = ov.box("dupbadge", a.color);
+  ov.active.add(d);
+  const stop = a.follow((x, y) => {
+    const ox = x - (s.x + g.x), oy = y - (s.y + g.y);
+    ghost.style.transform = `translate(${ox}px, ${oy}px)`;
+    badge.style.left = `${s.x + ox + s.w + 4}px`;
+    badge.style.top = `${s.y + oy - 10}px`;
+    badge.textContent = `${Math.round(Math.hypot(ox, oy))}`;
+  });
+  await a.moveTo(d.x + g.x, d.y + g.y, { dur: clamp(Math.hypot(d.x - s.x, d.y - s.y) * 1.2 + 300, 500, 1500) });
+  await a.settle();
+  stop();
+  ghost.style.transform = `translate(${d.x - s.x}px, ${d.y - s.y}px)`;
+  ghost.style.width = `${d.w}px`;
+  ghost.style.height = `${d.h}px`;
+  ghost.classList.add("dropped");
+  ov.fadeOut(badge, 200);
+  place(el);
+  a.cursor = "arrow";
+
+  // Retype each copied text with this item's own text.
+  const rootIsText = el.dataset.origPart === "text";
+  const targets = [...(rootIsText ? [el] : []), ...el.querySelectorAll<HTMLElement>('[data-part="text"]')];
+  const olds = targets.map((tt) => resolvePath(ghost, pathOf(el, tt)));
+  if (!rootIsText) {
+    // Only the copied text stays visible over the new item until it's retyped.
+    ghost.style.visibility = "hidden";
+    for (const o of olds) if (o) o.style.visibility = "visible";
+  }
+  for (let i = 0; i < targets.length; i++) await retype(a, olds[i], targets[i], ov);
+  ov.active.delete(d);
+  ghost.remove();
+}
+
+async function retype(a: Agent, old: HTMLElement | null, el: HTMLElement, ov: Overlay) {
+  const cs = chars(el);
+  const rects = cs.map((c) => pageRect(c));
+  const r = union(rects) ?? pageRect(el);
+  const o = old ? pageRect(old) : r;
+  a.cursor = "text";
+  await a.moveTo(o.x + o.w + 1, o.y + o.h / 2);
+  await a.settle();
+  if (old) {
+    old.classList.add("selecting");
+    await sleep(rand(260, 420));
+    old.style.visibility = "hidden";
+  }
+  const b = ov.box("tbox", a.color);
+  Overlay.place(b, r.x, r.y, r.w, r.h);
+  await typeChars(a, cs, rects);
+  place(el);
+  ov.fadeOut(b, 250);
+}
+
+/* Typing: characters arrive in small bursts, the I-beam riding at the end. */
+async function typeChars(a: Agent, cs: HTMLElement[], rects: Rect[]) {
+  if (!cs.length) return;
+  const r0 = rects[0];
+  await a.moveTo(r0.x, r0.y + r0.h / 2, { dur: 160, curve: 0 });
+  let i = 0;
+  while (i < cs.length) {
+    const n = Math.min(cs.length - i, 1 + ((Math.random() * 3) | 0));
+    for (let j = 0; j < n; j++) reveal(cs[i + j], a.color);
+    i += n;
+    const last = rects[i - 1];
+    await a.moveTo(last.x + last.w + 1, last.y + last.h / 2, { dur: rand(30, 70), curve: 0, ease: linear });
+  }
+}
+
+function reveal(c: HTMLElement, color: string) {
+  c.style.color = color;
+  c.classList.add("on");
+  sleep(700).then(() => { c.style.color = ""; });
 }
 
 export function chars(el: HTMLElement): HTMLElement[] {
   return Array.from(el.querySelectorAll<HTMLElement>(".ch"));
 }
 
-async function type(a: Agent, el: HTMLElement) {
-  const cs = chars(el).filter((c) => !c.classList.contains("on"));
-  if (cs.length) {
-    const rects = cs.map((c) => pageRect(c));
-    // Group characters into 2-5 character tokens, breaking at gaps and line wraps.
-    const tokens: number[][] = [];
-    let cur: number[] = [];
-    let len = (2 + Math.random() * 4) | 0;
-    for (let i = 0; i < cs.length; i++) {
-      const prev = rects[i - 1];
-      const gap = prev && (rects[i].x - (prev.x + prev.w) > 2 || rects[i].y > prev.y + prev.h / 2);
-      if (cur.length && (cur.length >= len || gap)) { tokens.push(cur); cur = []; len = (2 + Math.random() * 4) | 0; }
-      cur.push(i);
-    }
-    if (cur.length) tokens.push(cur);
+function union(rs: Rect[]): Rect | null {
+  if (!rs.length) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const r of rs) { x0 = Math.min(x0, r.x); y0 = Math.min(y0, r.y); x1 = Math.max(x1, r.x + r.w); y1 = Math.max(y1, r.y + r.h); }
+  return { x: x0 - 2, y: y0 - 1, w: x1 - x0 + 4, h: y1 - y0 + 2 };
+}
 
-    const r0 = rects[0];
-    a.cursor = "arrow";
-    await a.moveTo(r0.x, r0.y + r0.h / 2);
-    await a.settle();
-    a.cursor = "text";
-    await sleep(rand(150, 260));
-    for (const tok of tokens) {
-      for (const i of tok) reveal(cs[i], a.color);
-      const last = rects[tok[tok.length - 1]];
-      await a.moveTo(last.x + last.w + 1, last.y + last.h / 2, { dur: rand(45, 95), curve: 0, ease: linear });
-      if (Math.random() < 0.06) await sleep(rand(120, 300));
-    }
+function pathOf(root: Element, node: Element): number[] {
+  const path: number[] = [];
+  for (let n: Element | null = node; n && n !== root; n = n.parentElement) {
+    path.unshift([...n.parentElement!.children].indexOf(n));
   }
-  place(el);
+  return path;
 }
 
-function reveal(c: HTMLElement, color: string) {
-  c.style.color = color;
-  c.classList.add("on");
-  sleep(900).then(() => { c.style.color = ""; });
+function resolvePath(root: Element, path: number[]): HTMLElement | null {
+  let n: Element | undefined = root;
+  for (const i of path) n = n?.children[i];
+  return (n as HTMLElement) ?? null;
 }
 
-/** Wrap every visible character of a type part in a span (screen readers get the plain text). */
+/** Text of an element with spaces between separate text nodes and at line breaks. */
+export function words(el: HTMLElement): string {
+  const out: string[] = [];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    out.push(n.nodeType === Node.TEXT_NODE ? n.textContent ?? "" : " ");
+  }
+  return out.join("").replace(/\s+/g, " ").trim();
+}
+
+/** Wrap every visible character of a text part in a span (screen readers get the plain text). */
 export function splitText(el: HTMLElement) {
   const plain = words(el);
   const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
