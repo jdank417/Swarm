@@ -117,6 +117,7 @@ h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
 
 /* nav */
 .wrap.nav { display: flex; align-items: center; gap: 32px; padding-top: 16px; padding-bottom: 16px; }
+.wrap.nav > .btn { margin-left: auto; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
 .logo { width: 24px; height: 24px; border-radius: 6px; background: var(--dark); color: #fff; display: grid; place-items: center; font: 700 9px var(--mono); }
 .links { position: relative; display: flex; gap: 28px; margin-left: auto; font-size: 14px; color: var(--ink-2); }
@@ -270,6 +271,30 @@ blockquote.pull > span { display: block; margin-top: 2px; font-size: 11px; color
 .foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .replay { cursor: pointer; font-family: inherit; }
 
+/* ---------- two-screen layout ---------- */
+.hero { min-height: calc(100vh - 76px); padding-top: 48px; padding-bottom: 48px; }
+.hero .lead { font-size: 16.5px; max-width: 520px; }
+.mini-stats { position: relative; display: grid; grid-template-columns: repeat(4, auto); justify-content: start; gap: 8px; margin-top: 26px; }
+.ms { padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.ms b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.ms > span { display: block; font: 500 10px var(--mono); color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+
+.wrap.work { padding-top: 56px; padding-bottom: 56px; }
+.work-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.work-head h2 { margin: 0; }
+.work-head .all { font-size: 12px; color: var(--accent); }
+.tiles { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+.tile { display: flex; flex-direction: column; gap: 3px; padding: 16px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; transition: border-color .2s, transform .2s; }
+.tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.tile .kicker { font-size: 10.5px; }
+.tile b { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+.tile .tl { font-size: 13px; color: var(--ink-2); }
+.reach { display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
+.reach > p { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); }
+.reach-links { position: relative; display: flex; gap: 22px; flex-wrap: wrap; }
+.reach-links a { font-size: 15px; font-weight: 500; border-bottom: 1px solid var(--line); }
+.reach-links a:hover { border-color: var(--ink); }
+
 /* ---------- mobile menu ---------- */
 .menu-btn {
   display: none; position: fixed; top: 24px; right: 12px; z-index: 70;
@@ -309,12 +334,12 @@ html.menu-open #agents { visibility: hidden; }
   .shot.desktop { grid-column: auto; }
   .job { gap: 8px; }
   .links { display: none; }
-  .menu-btn { display: flex; }
+  .hero { min-height: 0; }
+  .tiles { grid-template-columns: 1fr 1fr; }
   .grid3.projects { grid-template-columns: 1fr 1fr; }
   .trow { grid-template-columns: 1fr; gap: 2px; }
   .trow .org { text-align: left; }
   .more-card { flex-direction: column; align-items: flex-start; }
-  .wrap.nav { padding-right: 68px; }
   .wrap.nav .btn { margin-left: auto; }
 }
 @media (max-width: 600px) {
@@ -325,6 +350,26 @@ html.menu-open #agents { visibility: hidden; }
   .wrap { padding: 56px 20px; }
   .grid4, .repo-grid, .stats.three, .grid3.projects { grid-template-columns: 1fr; }
   blockquote.pull { padding: 24px; }
+  .hero { padding-top: 32px; padding-bottom: 36px; }
+  .hero .term, .hero .badges { display: none; }
+  h1.name { font-size: 44px; }
+  .sub { font-size: 26px; margin-bottom: 14px; }
+  .hero .lead { font-size: 15px; }
+  .mini-stats { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 18px; }
+  .ms { padding: 8px 8px; }
+  .ms b { font-size: 16px; }
+  .ms > span { font-size: 8.5px; letter-spacing: .02em; }
+  .cta { margin-top: 20px; }
+  .term { margin-top: 26px; padding: 14px; }
+  .row { padding: 8px 10px; }
+  .wrap.work { padding-top: 36px; padding-bottom: 36px; }
+  .tiles { gap: 8px; margin-top: 16px; }
+  .tile { padding: 12px; }
+  .tile b { font-size: 14px; }
+  .tile .tl { font-size: 12px; }
+  .reach { margin-top: 22px; gap: 10px; }
+  .reach-links { gap: 14px; }
+  .reach-links a { font-size: 14px; }
   .strip { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {

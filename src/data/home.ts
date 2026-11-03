@@ -55,6 +55,27 @@ export const FULL_SITE = 'https://jasondank.com';
 
 export const featuredIds = ['regattatrack', 'humanauth', 'live-boston', 'dankhome', 'lime', 'bullbar'];
 
+/** The short pitch for the one-pager. */
+export const pitch =
+  'Full-stack engineer on the Fidelity Private Shares platform in Boston. Before that, endpoint engineering for 20,000+ devices at Harvard IT. On the side I ship Swift apps, automation and AI/ML.';
+
+/** One line per featured project, for the compact tiles. */
+export const taglines: Record<string, string> = {
+  regattatrack: 'Course plotting for one-design yacht racing.',
+  humanauth: 'Replacing CAPTCHA with real-time computer vision.',
+  'live-boston': 'Every T train in Boston, live in 3D.',
+  dankhome: 'A HomeKit wall panel with an on-device assistant.',
+  lime: 'Convert and edit files right from Finder.',
+  bullbar: 'Live stock quotes floating above every window.',
+};
+
+export const nowRows = [
+  ['now', 'Fidelity Private Shares'],
+  ['before', 'Harvard University IT'],
+  ['school', 'Wentworth · B.S. CS'],
+  ['based', 'Boston, MA'],
+];
+
 /** Off-the-keyboard highlights, from the leadership and sailing pages of the full site. */
 export const beyond = [
   { title: 'Won Figawi 2026', detail: 'Racing aboard Fawn Libowitz, MAT 1070, out of Boston Harbor.' },

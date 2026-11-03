@@ -32,8 +32,16 @@ export class Board {
   addSection(el: HTMLElement) {
     const section: Section = { el, tasks: [] };
     // Parts inside a duplicated item are handled by that item's dup task.
-    const parts = [...el.querySelectorAll<HTMLElement>("[data-part]")]
-      .filter((p) => !p.parentElement?.closest('[data-part="dup"]'));
+    const all = [...el.querySelectorAll<HTMLElement>("[data-part]")];
+    // Parts not displayed at this screen size (display: none) are skipped and counted as done.
+    const shown = all.filter((p) => {
+      if (p.getClientRects().length) return true;
+      p.classList.add("placed");
+      p.querySelectorAll(".ch").forEach((c) => c.classList.add("on"));
+      this.done++;
+      return false;
+    });
+    const parts = shown.filter((p) => !p.parentElement?.closest('[data-part="dup"]'));
     const byEl = new Map<HTMLElement, Task>();
     for (const p of parts) {
       const t: Task = { el: p, kind: p.dataset.part as Kind, deps: [], section, state: "wait" };

@@ -1,10 +1,10 @@
 # Swarm
 
-Jason Dank's portfolio, built live by a team of AI agents while you scroll. It's a one-page highlight reel:
-hero, stats, core stack, six selected projects, an experience timeline, focus areas, leadership and
-sailing highlights, a recommendation, and contact. The full site, with case studies, the résumé and the
-sailing log, is [jasondank.com](https://jasondank.com) ([jdank417/JasonDank](https://github.com/jdank417/JasonDank)),
-linked throughout. The footer has a button to watch the page build again.
+Jason Dank's portfolio, built live by a team of AI agents while you scroll. It's deliberately short, about
+two screens: a hero with the pitch, stats and a `now.txt` panel, then six selected projects and contact
+links. Everything else (case studies, the résumé, the sailing log) is on
+[jasondank.com](https://jasondank.com) ([jdank417/JasonDank](https://github.com/jdank417/JasonDank)).
+The footer has a button to watch the page build again.
 
 Each cursor is a separate agent with its own loop and a specialty (layout, copy or build). When a
 section scrolls into view its parts go on a shared board, and agents claim them and build them with
@@ -43,7 +43,7 @@ npm run build     # type-check + production build into dist/
 
 ## Editing
 
-- **Content:** `src/data/` (ported from the JasonDank repo; `home.ts` holds the one-page copy and picks)
+- **Content:** `src/data/` (ported from the JasonDank repo; `home.ts` holds the pitch, stats, project picks and taglines)
 - **Layout:** `src/pages.ts`, using the helpers in `src/ui.ts`
 - **Styles:** `src/style.css`
 
@@ -60,4 +60,5 @@ The engine is in `src/engine/`: `swarm.ts` (intro, agent loops, flocking), `boar
 claiming and dependencies), `actions.ts` (line, rect, text, dup), `overlay.ts` (boxes and guides),
 `rulers.ts` and `agent.ts` (brain, network samples, cursor).
 
-Visitors with "reduce motion" turned on get the finished page with no agents.
+Parts hidden at a screen size (`display: none`, like the `now.txt` panel on phones) are skipped. Visitors with
+"reduce motion" turned on get the finished page with no agents.
