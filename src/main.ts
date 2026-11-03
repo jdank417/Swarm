@@ -1,6 +1,6 @@
 import "./style.css";
 import { renderProjects, renderRepos, renderStack } from "./content";
-import { Assembler } from "./engine/assembler";
+import { Swarm } from "./engine/swarm";
 import { orb, projectVisual } from "./visuals";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -26,26 +26,23 @@ document.addEventListener("assembled", (e) => {
   });
 });
 
-const swarm = new Assembler($<HTMLCanvasElement>("#swarm"), innerWidth < 700 ? 36 : 64);
+const small = innerWidth < 700;
+const swarm = new Swarm($("#agents"), $<HTMLOListElement>("#feed-log"), small ? 14 : 28);
 swarm.prepare(document);
 
 if (reduce) {
   swarm.finishAll(document);
-  $("#hud").hidden = true;
+  $("#feed").hidden = true;
 } else {
   document.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => (el.textContent = "0"));
-  const dots = [...document.querySelectorAll<HTMLElement>(".hud-dots i")];
-  const hA = $("#hud-agents"), hP = $("#hud-parts"), hS = $("#hud-status");
-  swarm.onStats = ({ agents, busy, done, total }) => {
-    hA.textContent = `${agents} agents · ${busy} working`;
-    hP.textContent = `${done} / ${total} parts`;
-    hS.textContent = busy ? "assembling" : done === total ? "complete" : "idle";
-    const on = Math.round((done / total) * dots.length);
-    dots.forEach((d, i) => d.classList.toggle("on", i < on));
+  const fA = $("#feed-agents"), fP = $("#feed-parts");
+  swarm.onStats = ({ agents, working, done, total }) => {
+    fA.textContent = `${agents} agents · ${working} working`;
+    fP.textContent = `${done}/${total} built`;
   };
   // Wait for web fonts so character positions are measured on final glyphs.
   Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]).then(() => {
-    swarm.start();
     swarm.observe(document);
+    swarm.start();
   });
 }

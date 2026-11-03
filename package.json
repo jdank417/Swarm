@@ -11,5 +11,8 @@
   "devDependencies": {
     "typescript": "5.9.3",
     "vite": "6.4.5"
+  },
+  "dependencies": {
+    "perfect-cursors": "1.0.5"
   }
 }

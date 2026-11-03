@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <canvas id="swarm" aria-hidden="true"></canvas>
+  <div id="agents" aria-hidden="true"></div>
 
   <header class="nav">
     <a class="brand" href="#top"><span class="brand-tile">JD</span><b>Jason</b>&nbsp;Dank</a>
@@ -49,9 +49,9 @@
       </div>
       <div class="hero-art" data-part="frame"><canvas id="orb"></canvas></div>
       <div class="stats">
-        <div class="stat" data-part="carry"><b data-count="40" data-suffix="+">40+</b><span class="mono">repos</span></div>
-        <div class="stat" data-part="carry"><b data-count="6">6</b><span class="mono">languages</span></div>
-        <div class="stat" data-part="carry"><b data-count="1">1</b><span class="mono">thing at a time</span></div>
+        <div class="stat" data-part="carry" data-label="stat tile · repos"><b data-count="40" data-suffix="+">40+</b><span class="mono">repos</span></div>
+        <div class="stat" data-part="carry" data-label="stat tile · languages"><b data-count="6">6</b><span class="mono">languages</span></div>
+        <div class="stat" data-part="carry" data-label="stat tile · thing at a time"><b data-count="1">1</b><span class="mono">thing at a time</span></div>
       </div>
     </section>
 
@@ -103,14 +103,10 @@
     </section>
   </main>
 
-  <footer id="hud" class="hud mono" aria-hidden="true">
-    <span class="hud-dots"><i></i><i></i><i></i><i></i><i></i></span>
-    <span id="hud-agents">booting</span>
-    <span class="sep">/</span>
-    <span id="hud-parts"></span>
-    <span class="sep">/</span>
-    <span id="hud-status"></span>
-  </footer>
+  <aside id="feed" class="feed mono" aria-hidden="true">
+    <div class="feed-head"><i class="dot live"></i><span id="feed-agents">agents</span><span id="feed-parts"></span></div>
+    <ol id="feed-log"></ol>
+  </aside>
 
   <script type="module" src="/src/main.ts"></script>
 </body>
