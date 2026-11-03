@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jason Dank — Software Engineer</title>
+  <meta name="description" content="Portfolio of Jason Dank, full-stack software engineer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Boot screen -->
+  <div id="boot" aria-hidden="true">
+    <div class="boot-tile"><span>JD</span></div>
+    <div class="boot-text mono">assembling page<span class="dots"></span></div>
+  </div>
+
+  <!-- Agent swarm layer -->
+  <canvas id="swarm" aria-hidden="true"></canvas>
+  <div id="scanline" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="#top"><span class="brand-tile">JD</span><b>Jason</b>Dank</a>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn small" href="https://github.com/jdank417" target="_blank" rel="noopener">GitHub ↗</a>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero build" data-agents="18">
+      <div class="hero-copy">
+        <p class="tag mono"><i class="dot live"></i> Full-stack software engineer</p>
+        <h1 class="glitch" data-scramble>I build software<br /><span class="dim">that works.</span></h1>
+        <p class="lead" data-scramble>
+          I design and build full-stack applications, from computer-vision authentication
+          to real-time tracking systems and ML experiments. I care about clean architecture
+          and code that's easy to run.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#work">See the work</a>
+          <a class="btn ghost" href="#contact">Get in touch →</a>
+        </div>
+      </div>
+      <div class="hero-art wire">
+        <canvas id="orb"></canvas>
+      </div>
+      <div class="stats">
+        <div class="stat wire"><b data-count="40">0</b><span class="mono">repos</span></div>
+        <div class="stat wire"><b data-count="6">0</b><span class="mono">languages</span></div>
+        <div class="stat wire"><b data-count="1">0</b><span class="mono">thing at a time</span></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="build" data-agents="14">
+      <p class="eyebrow mono">// about</p>
+      <h2 class="glitch" data-scramble>Engineering depth <span class="dim">is the product.</span></h2>
+      <div class="grid3">
+        <article class="card wire">
+          <h3 class="mono">01 / Backend</h3>
+          <p>REST APIs in Flask and Node, data pipelines, auth, rate limiting, and deployment.</p>
+        </article>
+        <article class="card wire">
+          <h3 class="mono">02 / Frontend</h3>
+          <p>Angular, React and plain TypeScript. Real-time UIs, camera and canvas work.</p>
+        </article>
+        <article class="card wire">
+          <h3 class="mono">03 / ML &amp; Vision</h3>
+          <p>MediaPipe landmark detection, fine-tuned language models, and time-series forecasting.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- WORK -->
+    <section id="work">
+      <p class="eyebrow mono">// selected work</p>
+      <h2 class="glitch build" data-agents="10" data-scramble>Proof lives in <span class="dim">what I ship.</span></h2>
+      <div id="projects"></div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="build" data-agents="12">
+      <p class="eyebrow mono">// contact</p>
+      <h2 class="glitch" data-scramble>Let's build <span class="dim">something.</span></h2>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/jdank417" target="_blank" rel="noopener">github.com/jdank417</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="hud mono" aria-hidden="true">
+    <span class="hud-dots"><i></i><i></i><i></i><i></i><i></i></span>
+    <span id="hud-agents">0 agents</span>
+    <span class="sep">/</span>
+    <span id="hud-layers">0 / 0 layers</span>
+    <span class="sep">/</span>
+    <span id="hud-status">booting</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
