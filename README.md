@@ -25,8 +25,8 @@ interpolates those samples along a spline with [perfect-cursors](https://github.
 (MIT, by Steve Ruiz, the library tldraw uses for remote cursors), so it trails the agent slightly and
 moves the way a collaborator's cursor does. Anything an agent is dragging follows its visible cursor.
 
-The named cursors follow the [Liveblocks live cursors](https://liveblocks.io/examples) pattern. The shared
-task board is inspired by [tldraw's agents on the canvas](https://tldraw.dev/starter-kits/agent).
+The shared task board, where agents claim work themselves, is inspired by
+[tldraw's agents on the canvas](https://tldraw.dev/starter-kits/agent).
 
 ## Stack
 
