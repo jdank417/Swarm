@@ -51,4 +51,16 @@ export const recommendations = [
 export const contactBlurb =
   'I’m building on the Fidelity Private Shares platform out of Boston. Always happy to talk full-stack and fintech engineering, AI/ML tooling, endpoint systems at scale — or sailing.';
 
-export const featuredIds = ['regattatrack', 'humanauth', 'dankhome', 'live-boston'];
+export const FULL_SITE = 'https://jasondank.com';
+
+export const featuredIds = ['regattatrack', 'humanauth', 'live-boston', 'dankhome', 'lime', 'bullbar'];
+
+/** Off-the-keyboard highlights, from the leadership and sailing pages of the full site. */
+export const beyond = [
+  { title: 'Won Figawi 2026', detail: 'Racing aboard Fawn Libowitz, MAT 1070, out of Boston Harbor.' },
+  { title: 'President & Captain', detail: 'Grew the Wentworth Sailing Team from two members to twenty-five.' },
+  { title: 'Executive Vice President', detail: 'Chaired the Wentworth Student Government Board of Directors.' },
+  { title: 'Paragon Award', detail: 'Wentworth Institute of Technology, March 2026.' },
+  { title: 'B.S. CS, Cum Laude', detail: 'Wentworth, a semester early, GPA 3.7, Dean’s List every semester.' },
+  { title: 'Jamf Certified Associate', detail: 'Jamf Pro and Jamf Protect, endpoint security and MDM for Apple.' },
+];

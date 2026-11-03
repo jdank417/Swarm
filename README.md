@@ -1,19 +1,10 @@
 # Swarm
 
-Jason Dank's portfolio, built live by a team of AI agents while you scroll. The content comes from
-[jdank417/JasonDank](https://github.com/jdank417/JasonDank) and is split across pages so each one is a
-manageable build for the swarm:
-
-| page | what's on it |
-| --- | --- |
-| `index.html` | hero, stats, core stack, focus areas, featured projects, current role |
-| `projects.html` | all 13 projects |
-| `project.html?id=<id>` | a case study per project: write-up, what I'm proudest of, tech, links, screenshots |
-| `work.html` | experience |
-| `about.html` | education, skills, leadership and certifications, recommendations |
-| `sailing.html` | racing, clubs and certifications |
-
-Every page ends with the contact section.
+Jason Dank's portfolio, built live by a team of AI agents while you scroll. It's a one-page highlight reel:
+hero, stats, core stack, six selected projects, an experience timeline, focus areas, leadership and
+sailing highlights, a recommendation, and contact. The full site, with case studies, the résumé and the
+sailing log, is [jasondank.com](https://jasondank.com) ([jdank417/JasonDank](https://github.com/jdank417/JasonDank)),
+linked throughout. The footer has a button to watch the page build again.
 
 Each cursor is a separate agent with its own loop and a specialty (layout, copy or build). When a
 section scrolls into view its parts go on a shared board, and agents claim them and build them with
@@ -52,13 +43,9 @@ npm run build     # type-check + production build into dist/
 
 ## Editing
 
-- **Content:** `src/data/` (ported from the JasonDank repo; `home.ts` holds the copy that lived in its components)
-- **Page layouts:** `src/pages.ts`, using the helpers in `src/ui.ts`
+- **Content:** `src/data/` (ported from the JasonDank repo; `home.ts` holds the one-page copy and picks)
+- **Layout:** `src/pages.ts`, using the helpers in `src/ui.ts`
 - **Styles:** `src/style.css`
-- **Screenshots:** `public/projects/`
-
-Adding a page means an HTML file like the others (with its own `data-page`), a renderer in
-`src/pages.ts`, and an entry in `vite.config.ts`.
 
 Each `section()` is one unit the swarm builds when it scrolls into view. Inside, pieces are tagged:
 
