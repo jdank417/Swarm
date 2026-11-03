@@ -46,6 +46,20 @@ export const PROJECTS: Project[] = [
   },
 ];
 
+/** Other public repos shown in the "More on GitHub" index. Names and links only. */
+export const REPOS = [
+  "Lime", "CodeWit", "GroceryBarcodeScanner", "HotTracks", "CrimsonBoard", "HUIT_BOT",
+  "StockAnalysisPlatformV2", "InternshipGetter", "OperationPickle", "Gitme", "DankNotch", "Remote_Monitering",
+];
+
+/** Tools that appear in the projects above. */
+export const STACK: { group: string; items: string[] }[] = [
+  { group: "Languages", items: ["Python", "TypeScript", "JavaScript", "HTML", "CSS"] },
+  { group: "Frameworks", items: ["Flask", "Angular", "Vite"] },
+  { group: "ML & Vision", items: ["MediaPipe", "Transformers", "Flan-T5", "Deep learning"] },
+  { group: "Tooling", items: ["Git", "GitHub Actions", "GitHub Pages", "REST APIs"] },
+];
+
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -64,4 +78,21 @@ export function renderProjects(host: HTMLElement) {
         <canvas data-visual="${p.visual}"></canvas>
       </div>
     </article>`).join("");
+}
+
+export function renderStack(host: HTMLElement) {
+  host.innerHTML = STACK.map((g) => `
+    <article class="card" data-part="frame">
+      <h3 class="mono" data-part="type">${esc(g.group)}</h3>
+      <ul class="chips">${g.items.map((i) => `<li data-part="carry">${esc(i)}</li>`).join("")}</ul>
+    </article>`).join("");
+}
+
+export function renderRepos(host: HTMLElement) {
+  host.innerHTML = REPOS.map((name) => `
+    <a class="repo" data-part="frame" href="https://github.com/jdank417/${encodeURIComponent(name)}" target="_blank" rel="noopener">
+      <span class="repo-owner mono" data-part="type">jdank417 /</span>
+      <span class="repo-name" data-part="type">${esc(name)}</span>
+      <span class="repo-go mono" data-part="carry">open ↗</span>
+    </a>`).join("");
 }

@@ -1,22 +1,17 @@
-import type { Agent } from "./agent";
-import { clamp } from "./util";
+import type { Agent, CursorKind } from "./agent";
 
+/** A selection box being dragged out for a real element. */
 export interface Mark {
-  kind: "rect" | "guide";
   x: number; y: number; w: number; h: number;
-  color: string;
   label?: string;
   handles?: boolean;
-  dashed?: boolean;
-  fill?: boolean;
   fadeAt?: number;
   fadeDur: number;
 }
 
 const BLUE = "#2a6cff";
-const GUIDE = "#ff3b8a";
 
-/** Fixed full-screen canvas that draws the swarm and its construction marks. */
+/** Fixed full-screen canvas that draws the cursors and the boxes they drag. */
 export class Overlay {
   readonly marks = new Set<Mark>();
   private ctx: CanvasRenderingContext2D;
@@ -35,22 +30,12 @@ export class Overlay {
   }
 
   rect(x: number, y: number, w: number, h: number, o: Partial<Mark> = {}): Mark {
-    const m: Mark = { kind: "rect", x, y, w, h, color: BLUE, fadeDur: 450, ...o };
+    const m: Mark = { x, y, w, h, fadeDur: 400, ...o };
     this.marks.add(m);
     return m;
   }
 
-  /** A smart-guide line that flashes briefly. */
-  guide(x1: number, y1: number, x2: number, y2: number, ms = 450) {
-    const m: Mark = { kind: "guide", x: x1, y: y1, w: x2 - x1, h: y2 - y1, color: GUIDE, fadeDur: 300 };
-    this.marks.add(m);
-    this.fade(m, ms);
-  }
-
-  fade(m: Mark, delay = 0, dur?: number) {
-    m.fadeAt = performance.now() + delay;
-    if (dur) m.fadeDur = dur;
-  }
+  fade(m: Mark, delay = 0) { m.fadeAt = performance.now() + delay; }
 
   draw(agents: Agent[], now: number) {
     const c = this.ctx;
@@ -64,37 +49,27 @@ export class Overlay {
         a = 1 - (now - m.fadeAt) / m.fadeDur;
         if (a <= 0) { this.marks.delete(m); continue; }
       }
-      const x = m.x - sx, y = m.y - sy;
-      if (y > innerHeight + 40 || y + Math.max(m.h, 0) < -40) continue;
+      const x = Math.min(m.x, m.x + m.w) - sx, y = Math.min(m.y, m.y + m.h) - sy;
+      const w = Math.abs(m.w), h = Math.abs(m.h);
+      if (y > innerHeight + 40 || y + h < -40) continue;
       c.globalAlpha = a;
-      if (m.kind === "guide") {
-        c.strokeStyle = m.color;
-        c.lineWidth = 1;
-        c.setLineDash([3, 3]);
-        c.beginPath(); c.moveTo(x, y); c.lineTo(x + m.w, y + m.h); c.stroke();
-        c.setLineDash([]);
-        continue;
-      }
-      const w = m.w, h = m.h;
-      if (m.fill) { c.fillStyle = "rgba(42,108,255,0.08)"; c.fillRect(x, y, w, h); }
-      c.strokeStyle = m.color;
+      c.fillStyle = "rgba(42,108,255,0.08)";
+      c.fillRect(x, y, w, h);
+      c.strokeStyle = BLUE;
       c.lineWidth = 1;
-      if (m.dashed) c.setLineDash([5, 4]);
       c.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.round(w), Math.round(h));
-      c.setLineDash([]);
       if (m.handles) {
         c.fillStyle = "#fff";
         for (const [hx, hy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
           c.fillRect(hx - 3, hy - 3, 6, 6);
-          c.strokeRect(hx - 3 + 0.5, hy - 3 + 0.5, 6, 6);
+          c.strokeRect(hx - 2.5, hy - 2.5, 6, 6);
         }
       }
       if (m.label) {
         c.font = "600 10px 'JetBrains Mono', monospace";
         const tw = c.measureText(m.label).width + 10;
-        const lx = Math.max(2, m.dashed ? x : x + w / 2 - tw / 2);
-        const ly = m.dashed ? y - 17 : y + h + 6;
-        c.fillStyle = m.color;
+        const lx = Math.max(2, x + w / 2 - tw / 2), ly = y + h + 6;
+        c.fillStyle = BLUE;
         c.fillRect(lx, ly, tw, 15);
         c.fillStyle = "#fff";
         c.fillText(m.label, lx + 5, ly + 11);
@@ -105,49 +80,50 @@ export class Overlay {
     for (const ag of agents) {
       const x = ag.x - sx, y = ag.y - sy;
       if (y < -30 || y > innerHeight + 30 || x < -30 || x > innerWidth + 30) continue;
-      const tilt = clamp(ag.vx * 0.04, -0.4, 0.4) - 0.3;
-      for (let i = 0; i < ag.trail.length - 1; i++) {
-        const t = ag.trail[i];
-        cursor(c, t.x - sx, t.y - sy, tilt, ag.color, (i / ag.trail.length) * 0.25, 1);
-      }
-      if (ag.pressed) {
-        c.strokeStyle = ag.color;
-        c.globalAlpha = 0.6;
-        c.beginPath(); c.arc(x, y, 7, 0, Math.PI * 2); c.stroke();
-        c.globalAlpha = 1;
-      }
-      cursor(c, x, y, tilt, ag.color, 1, ag.pressed ? 0.86 : 1);
-      if (ag.busy && ag.pressed) {
-        c.font = "600 9px 'JetBrains Mono', monospace";
-        const tw = c.measureText(ag.name).width + 8;
-        c.fillStyle = ag.color;
-        c.fillRect(x + 12, y + 14, tw, 13);
-        c.fillStyle = "#0b0c0f";
-        c.fillText(ag.name, x + 16, y + 24);
-      }
+      drawCursor(c, ag.cursor, x, y, ag.color);
     }
   }
 }
 
-function cursor(c: CanvasRenderingContext2D, x: number, y: number, ang: number, color: string, alpha: number, scale: number) {
+/* Cursor glyphs, each drawn with its hotspot at (x, y). */
+function drawCursor(c: CanvasRenderingContext2D, kind: CursorKind, x: number, y: number, color: string) {
   c.save();
-  c.globalAlpha = alpha;
-  c.translate(x, y);
-  c.rotate(ang);
-  c.scale(scale, scale);
-  c.beginPath();
-  c.moveTo(0, 0);
-  c.lineTo(0, 15);
-  c.lineTo(3.8, 11.3);
-  c.lineTo(6.6, 17);
-  c.lineTo(8.8, 16);
-  c.lineTo(6.1, 10.4);
-  c.lineTo(11.2, 10.4);
-  c.closePath();
-  c.fillStyle = color;
-  c.fill();
-  c.lineWidth = 1;
-  c.strokeStyle = "rgba(0,0,0,0.65)";
-  c.stroke();
+  c.translate(Math.round(x), Math.round(y));
+  c.lineJoin = "round";
+  if (kind === "arrow") {
+    c.beginPath();
+    c.moveTo(0, 0); c.lineTo(0, 15); c.lineTo(3.8, 11.3); c.lineTo(6.6, 17);
+    c.lineTo(8.8, 16); c.lineTo(6.1, 10.4); c.lineTo(11.2, 10.4); c.closePath();
+    c.fillStyle = color; c.fill();
+    c.lineWidth = 1.2; c.strokeStyle = "rgba(0,0,0,0.7)"; c.stroke();
+  } else if (kind === "cross") {
+    const line = (w: number, s: string) => {
+      c.lineWidth = w; c.strokeStyle = s;
+      c.beginPath(); c.moveTo(-8, 0); c.lineTo(8, 0); c.moveTo(0, -8); c.lineTo(0, 8); c.stroke();
+    };
+    line(3.2, "rgba(0,0,0,0.75)"); line(1.4, color);
+  } else if (kind === "text") {
+    const beam = (w: number, s: string) => {
+      c.lineWidth = w; c.strokeStyle = s;
+      c.beginPath();
+      c.moveTo(-3.5, -8); c.lineTo(-1, -8); c.moveTo(1, -8); c.lineTo(3.5, -8);
+      c.moveTo(0, -7); c.lineTo(0, 7);
+      c.moveTo(-3.5, 8); c.lineTo(-1, 8); c.moveTo(1, 8); c.lineTo(3.5, 8);
+      c.stroke();
+    };
+    beam(3.2, "rgba(0,0,0,0.75)"); beam(1.4, color);
+  } else {
+    // open (grab) or closed (grabbing) hand
+    const open = kind === "grab";
+    c.fillStyle = color; c.strokeStyle = "rgba(0,0,0,0.7)"; c.lineWidth = 1.1;
+    const fingerH = open ? 7 : 3;
+    for (let i = 0; i < 4; i++) {
+      c.beginPath();
+      c.roundRect(-6 + i * 3.2, -4 - fingerH, 3, fingerH + 4, 1.5);
+      c.fill(); c.stroke();
+    }
+    c.beginPath(); c.roundRect(-7, -3, 13, 10, 4); c.fill(); c.stroke();
+    c.beginPath(); c.roundRect(-10, open ? -3 : -1, 4, 6, 2); c.fill(); c.stroke();
+  }
   c.restore();
 }

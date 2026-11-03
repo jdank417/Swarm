@@ -1,5 +1,5 @@
 import "./style.css";
-import { renderProjects } from "./content";
+import { renderProjects, renderRepos, renderStack } from "./content";
 import { Assembler } from "./engine/assembler";
 import { orb, projectVisual } from "./visuals";
 
@@ -7,6 +7,8 @@ const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector<T>(s)!;
 
 renderProjects($("#projects"));
+renderStack($("#stack-grid"));
+renderRepos($("#repo-grid"));
 orb($<HTMLCanvasElement>("#orb"));
 document.querySelectorAll<HTMLCanvasElement>("canvas[data-visual]").forEach(projectVisual);
 

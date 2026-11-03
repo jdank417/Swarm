@@ -3,12 +3,13 @@
 Jason Dank's portfolio. Dozens of cursor "agents" run around the page and **assemble each component as
 it scrolls into view**:
 
-- **frame:** a cursor drags out a selection box (two cursors pull opposite corners on big ones) and the panel materializes inside it
-- **carry:** the piece appears nearby, cursors grab it, drag it into its slot, and snap guides flash
-- **type:** the text is split into characters and several cursors type it out at once, each acting as a caret
+- **frame:** a crosshair drags out a box exactly the size of the element, and the element fills it
+- **carry:** the element appears beside its slot, a hand grabs it and drops it in place
+- **type:** the text is split into characters and up to five I-beam cursors type it out at once
 
-Free cursors roam the viewport, follow you as you scroll and dodge your pointer. The HUD at the bottom
-shows agents, how many are working, and parts built.
+Nothing is drawn that doesn't become part of the page. Cursors with nothing to do flock like starlings
+around your mouse (or a roaming point on touch screens) and peel off when new work appears. The HUD at
+the bottom shows agents, how many are working, and parts built.
 
 **Live:** https://jdank417.github.io/Swarm/
 
