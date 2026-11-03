@@ -1,31 +1,44 @@
 # Swarm
 
-Jason Dank's portfolio site. A dark, dependency-free static page where a swarm of cursor "agents"
-assembles each section as you scroll, with glitch/scramble text reveals, blue wireframe panels,
-and a live build HUD.
+Jason Dank's portfolio. Dozens of cursor "agents" run around the page and **assemble each component as
+it scrolls into view**:
+
+- **frame:** a cursor drags out a selection box (two cursors pull opposite corners on big ones) and the panel materializes inside it
+- **carry:** the piece appears nearby, cursors grab it, drag it into its slot, and snap guides flash
+- **type:** the text is split into characters and several cursors type it out at once, each acting as a caret
+
+Free cursors roam the viewport, follow you as you scroll and dodge your pointer. The HUD at the bottom
+shows agents, how many are working, and parts built.
 
 **Live:** https://jdank417.github.io/Swarm/
 
-## GitHub Pages
+## Stack
 
-The site is plain static files at the repo root (with `.nojekyll`), so it deploys straight from the branch:
-
-1. **Settings → Pages**
-2. **Source:** Deploy from a branch
-3. **Branch:** `main`, folder `/ (root)` → **Save**
-
-Every push to `main` then republishes automatically within a minute or two.
-
-## Run locally
+Vite + TypeScript, no runtime dependencies. Deployed to GitHub Pages by `.github/workflows/deploy.yml`
+on every push to `main` (Settings → Pages → Source must be **GitHub Actions**).
 
 ```sh
-python3 -m http.server 8000   # then open http://localhost:8000
+npm install
+npm run dev       # local dev server
+npm run build     # type-check + production build into dist/
 ```
 
-## Edit content
+## Editing
 
-- **Projects:** the `PROJECTS` array at the top of `main.js`.
-- **Hero, about, contact copy:** `index.html`.
-- **Colors and fonts:** CSS variables at the top of `styles.css`.
+- **Projects:** `src/content.ts`
+- **Page copy and layout:** `index.html`
+- **Styles:** `src/style.css`
 
-Motion is disabled automatically for visitors who have "reduce motion" turned on.
+To make anything assemble, put it inside an element with `data-assemble="name"` and tag the pieces:
+
+| attribute | what the swarm does |
+| --- | --- |
+| `data-part="frame"` | drags out a box, then reveals the element |
+| `data-part="carry"` | drags the element into place (must be block or inline-block) |
+| `data-part="type"` | types the text (don't put it directly on a flex container) |
+
+A part waits for the part it sits inside to finish first. The engine is in `src/engine/`:
+`assembler.ts` (scheduling and roaming), `tasks.ts` (the three jobs), `agent.ts` (cursor motion) and
+`overlay.ts` (drawing).
+
+Visitors with "reduce motion" turned on get the finished page with no animation.
